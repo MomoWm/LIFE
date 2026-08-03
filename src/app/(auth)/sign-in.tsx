@@ -189,13 +189,13 @@ const styles = StyleSheet.create({
   },
   wordmark: {
     textAlign: 'center',
-    fontSize: 64,
-    lineHeight: 72,
+    fontSize: 76,
+    lineHeight: 84,
     fontWeight: '800',
-    letterSpacing: 14,
+    letterSpacing: 18,
     // Optical centering: letter-spacing trails the final glyph, nudging the
     // wordmark left — pad it back.
-    paddingLeft: 14,
+    paddingLeft: 18,
   },
   actions: {
     gap: Spacing.three,

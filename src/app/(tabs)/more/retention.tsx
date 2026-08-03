@@ -66,11 +66,9 @@ export default function RetentionScreen() {
         ) : (
           <>
             <Animated.View entering={FadeInDown.duration(300)}>
-              <Card style={styles.heroCard}>
-                <ThemedText style={styles.heroNumber}>
-                  {stats?.currentStreakDays ?? 0}
-                </ThemedText>
-                <ThemedText type="small" themeColor="textSecondary">
+              <Card raised style={styles.heroCard}>
+                <ThemedText type="display">{stats?.currentStreakDays ?? 0}</ThemedText>
+                <ThemedText type="label" themeColor="textTertiary">
                   days strong
                 </ThemedText>
               </Card>
@@ -141,14 +139,8 @@ const styles = StyleSheet.create({
   },
   heroCard: {
     alignItems: 'center',
-    paddingVertical: Spacing.five,
-    gap: Spacing.one,
-  },
-  heroNumber: {
-    fontSize: 72,
-    lineHeight: 80,
-    fontWeight: '800',
-    fontVariant: ['tabular-nums'],
+    paddingVertical: Spacing.six,
+    gap: Spacing.two,
   },
   statRow: {
     flexDirection: 'row',

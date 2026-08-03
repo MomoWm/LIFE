@@ -7,7 +7,7 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
-import Svg, { Circle } from 'react-native-svg';
+import Svg, { Circle, Defs, LinearGradient, Stop } from 'react-native-svg';
 
 import { useTheme } from '@/hooks/use-theme';
 
@@ -22,7 +22,13 @@ type ProgressRingProps = {
   children?: ReactNode;
 };
 
-export function ProgressRing({ progress, size = 64, strokeWidth = 6, color, children }: ProgressRingProps) {
+export function ProgressRing({
+  progress,
+  size = 64,
+  strokeWidth = 6,
+  color,
+  children,
+}: ProgressRingProps) {
   const theme = useTheme();
   const clamped = Math.max(0, Math.min(1, progress));
   const radius = (size - strokeWidth) / 2;
@@ -33,7 +39,7 @@ export function ProgressRing({ progress, size = 64, strokeWidth = 6, color, chil
 
   useEffect(() => {
     animatedProgress.value = withTiming(clamped, {
-      duration: 600,
+      duration: 900,
       easing: Easing.out(Easing.cubic),
     });
   }, [clamped, animatedProgress]);
@@ -44,7 +50,18 @@ export function ProgressRing({ progress, size = 64, strokeWidth = 6, color, chil
 
   return (
     <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>
-      <Svg width={size} height={size} style={{ position: 'absolute', transform: [{ rotate: '-90deg' }] }}>
+      <Svg
+        width={size}
+        height={size}
+        style={{ position: 'absolute', transform: [{ rotate: '-90deg' }] }}>
+        <Defs>
+          {/* The arc brightens as it fills, so completion literally reads as
+              light gathering rather than a flat bar bending into a circle. */}
+          <LinearGradient id="ringFill" x1="0" y1="0" x2="1" y2="1">
+            <Stop offset="0" stopColor={ringColor} stopOpacity="0.55" />
+            <Stop offset="1" stopColor={ringColor} stopOpacity="1" />
+          </LinearGradient>
+        </Defs>
         <Circle
           cx={size / 2}
           cy={size / 2}
@@ -57,7 +74,7 @@ export function ProgressRing({ progress, size = 64, strokeWidth = 6, color, chil
           cx={size / 2}
           cy={size / 2}
           r={radius}
-          stroke={ringColor}
+          stroke="url(#ringFill)"
           strokeWidth={strokeWidth}
           strokeLinecap="round"
           strokeDasharray={circumference}

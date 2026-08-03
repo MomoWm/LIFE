@@ -29,23 +29,26 @@ export function Button({ title, onPress, variant = 'filled', disabled, loading, 
     onPress();
   };
 
+  // The accent lives in the data (rings, progress, streaks), never in a large
+  // chrome fill — a saturated green CTA is what makes a dark app read as a
+  // generic template. Primary actions are near-white on near-black instead.
   const backgroundColor =
     variant === 'filled'
-      ? theme.tint
+      ? theme.text
       : variant === 'destructive'
-        ? theme.danger
+        ? 'transparent'
         : variant === 'tinted'
           ? theme.backgroundSelected
           : 'transparent';
 
   const textColor =
     variant === 'filled'
-      ? theme.onTint
+      ? theme.background
       : variant === 'destructive'
-        ? '#FFFFFF'
+        ? theme.danger
         : variant === 'tinted'
           ? theme.text
-          : theme.tint;
+          : theme.textSecondary;
 
   const pressStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
 
@@ -65,6 +68,7 @@ export function Button({ title, onPress, variant = 'filled', disabled, loading, 
         style={[
           styles.base,
           { backgroundColor },
+          variant === 'destructive' && { borderWidth: 1, borderColor: theme.separator },
           variant === 'plain' && styles.plain,
           inactive && styles.disabled,
         ]}>

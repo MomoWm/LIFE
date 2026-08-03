@@ -1,10 +1,21 @@
 import { Platform, StyleSheet, Text, type TextProps } from 'react-native';
 
-import { Fonts, ThemeColor } from '@/constants/theme';
+import { Fonts, ThemeColor, Type } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
 export type ThemedTextProps = TextProps & {
-  type?: 'default' | 'title' | 'small' | 'smallBold' | 'subtitle' | 'link' | 'linkPrimary' | 'code';
+  type?:
+    | 'default'
+    | 'display'
+    | 'metric'
+    | 'title'
+    | 'subtitle'
+    | 'small'
+    | 'smallBold'
+    | 'label'
+    | 'link'
+    | 'linkPrimary'
+    | 'code';
   themeColor?: ThemeColor;
 };
 
@@ -16,10 +27,13 @@ export function ThemedText({ style, type = 'default', themeColor, ...rest }: The
       style={[
         { color: theme[themeColor ?? 'text'] },
         type === 'default' && styles.default,
+        type === 'display' && styles.display,
+        type === 'metric' && styles.metric,
         type === 'title' && styles.title,
+        type === 'subtitle' && styles.subtitle,
         type === 'small' && styles.small,
         type === 'smallBold' && styles.smallBold,
-        type === 'subtitle' && styles.subtitle,
+        type === 'label' && styles.label,
         type === 'link' && styles.link,
         type === 'linkPrimary' && styles.linkPrimary,
         type === 'code' && styles.code,
@@ -31,31 +45,15 @@ export function ThemedText({ style, type = 'default', themeColor, ...rest }: The
 }
 
 const styles = StyleSheet.create({
-  small: {
-    fontSize: 14,
-    lineHeight: 20,
-    fontWeight: 500,
-  },
-  smallBold: {
-    fontSize: 14,
-    lineHeight: 20,
-    fontWeight: 700,
-  },
-  default: {
-    fontSize: 16,
-    lineHeight: 24,
-    fontWeight: 500,
-  },
-  title: {
-    fontSize: 48,
-    fontWeight: 600,
-    lineHeight: 52,
-  },
-  subtitle: {
-    fontSize: 32,
-    lineHeight: 44,
-    fontWeight: 600,
-  },
+  // Hero numerals are always tabular so a ticking counter never reflows.
+  display: { ...Type.display, fontVariant: ['tabular-nums'] },
+  metric: { ...Type.metric, fontVariant: ['tabular-nums'] },
+  title: Type.title,
+  subtitle: Type.subtitle,
+  default: Type.body,
+  small: Type.small,
+  smallBold: Type.smallBold,
+  label: { ...Type.label, textTransform: 'uppercase' },
   link: {
     lineHeight: 30,
     fontSize: 14,

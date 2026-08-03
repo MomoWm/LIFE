@@ -123,8 +123,8 @@ export default function WorkScreen() {
                         : 'Day ended'}
                   </ThemedText>
                 </View>
-                <ThemedText style={styles.timerText}>{formatElapsed(minutes)}</ThemedText>
-                <ThemedText type="small" themeColor="textSecondary">
+                <ThemedText type="display">{formatElapsed(minutes)}</ThemedText>
+                <ThemedText type="label" themeColor="textTertiary">
                   hours worked today
                 </ThemedText>
                 {session.status !== 'ended' ? (
@@ -226,8 +226,8 @@ function CounterCard({
               <Icon name="checkmark.seal.fill" size={14} tintColor={theme.success} />
             ) : null}
           </View>
-          <ThemedText style={styles.counterValue}>{count}</ThemedText>
-          <ThemedText type="small" themeColor="textSecondary">
+          <ThemedText type="metric">{count}</ThemedText>
+          <ThemedText type="label" themeColor="textTertiary">
             {label}
             {target != null ? ` / ${target}` : ''}
           </ThemedText>
@@ -265,12 +265,6 @@ const styles = StyleSheet.create({
     height: 8,
     borderRadius: 4,
   },
-  timerText: {
-    fontSize: 56,
-    lineHeight: 62,
-    fontWeight: '800',
-    fontVariant: ['tabular-nums'],
-  },
   timerButtons: {
     flexDirection: 'row',
     gap: Spacing.two,
@@ -296,12 +290,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-  },
-  counterValue: {
-    fontSize: 40,
-    lineHeight: 46,
-    fontWeight: '800',
-    fontVariant: ['tabular-nums'],
   },
   progressTrack: {
     height: 5,

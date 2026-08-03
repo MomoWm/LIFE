@@ -41,7 +41,10 @@ export function Screen({ children, contentStyle }: ScreenProps) {
 const styles = StyleSheet.create({
   content: {
     padding: Spacing.three,
-    gap: Spacing.three,
+    // Cards carry their own generous internal padding, so the rhythm between
+    // them is what creates calm — cramped gaps are what made this read as a
+    // dense data table rather than a considered instrument.
+    gap: Spacing.four,
     paddingBottom: Spacing.six,
   },
 });

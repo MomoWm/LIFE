@@ -19,15 +19,15 @@ export function StatCard({ label, value, unit, symbol, symbolColor, footer }: St
   return (
     <Card style={styles.card}>
       <View style={styles.labelRow}>
-        <Icon name={symbol} size={15} tintColor={symbolColor} />
-        <ThemedText type="small" themeColor="textSecondary">
+        <Icon name={symbol} size={13} tintColor={symbolColor} />
+        <ThemedText type="label" themeColor="textTertiary">
           {label}
         </ThemedText>
       </View>
       <View style={styles.valueRow}>
-        <ThemedText style={styles.value}>{value}</ThemedText>
+        <ThemedText type="metric">{value}</ThemedText>
         {unit ? (
-          <ThemedText type="small" themeColor="textSecondary" style={styles.unit}>
+          <ThemedText type="small" themeColor="textTertiary" style={styles.unit}>
             {unit}
           </ThemedText>
         ) : null}
@@ -40,7 +40,7 @@ export function StatCard({ label, value, unit, symbol, symbolColor, footer }: St
 const styles = StyleSheet.create({
   card: {
     flex: 1,
-    gap: Spacing.one,
+    gap: Spacing.two,
   },
   labelRow: {
     flexDirection: 'row',
@@ -50,13 +50,7 @@ const styles = StyleSheet.create({
   valueRow: {
     flexDirection: 'row',
     alignItems: 'baseline',
-    gap: Spacing.one,
-  },
-  value: {
-    fontSize: 30,
-    lineHeight: 36,
-    fontWeight: '700',
-    fontVariant: ['tabular-nums'],
+    gap: Spacing.one + 2,
   },
   unit: {
     marginBottom: 2,

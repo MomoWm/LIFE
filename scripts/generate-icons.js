@@ -23,13 +23,17 @@ const zlib = require('zlib');
 
 const GLOW_COLOR = [255, 255, 255];
 
-// Vertical metallic gradient stops for the letterforms: bright silver at the
-// top, cooling to a darker steel by the baseline — the classic brushed-metal
-// light-catches-the-top look.
+// Vertical metallic gradient for the letterforms. Real polished metal isn't a
+// linear fade — it has a bright specular band where the light source reflects,
+// a darker turn below it, then a bounce-light lift near the base. These stops
+// fake that reflection profile.
 const METAL_STOPS = [
-  { t: 0, rgb: [255, 255, 255] },
-  { t: 0.5, rgb: [219, 224, 227] },
-  { t: 1, rgb: [172, 180, 186] },
+  { t: 0, rgb: [214, 221, 228] }, // upper face, in shade
+  { t: 0.34, rgb: [255, 255, 255] }, // specular hit
+  { t: 0.46, rgb: [236, 241, 245] },
+  { t: 0.62, rgb: [151, 161, 173] }, // turn away from the light
+  { t: 0.88, rgb: [186, 195, 205] }, // bounce light off the ground
+  { t: 1, rgb: [166, 175, 186] },
 ];
 
 function metalColorAt(t) {
@@ -50,79 +54,101 @@ function metalColorAt(t) {
 
 // ---------------------------------------------------------------------------
 // Wordmark geometry, defined at a 1024 reference size and scaled per output.
-// Stroke ≈ 0.215 × cap height gives a confident bold weight; total width sits
-// well inside the 80% maskable-icon safe zone.
+//
+// Proportions are typographic rather than arbitrary: stroke is 0.155 × cap
+// height (a confident-but-not-chunky weight — the earlier 0.215 read as Lego
+// bricks), bars carry small optical corrections, and sidebearings are tuned
+// per letter pair instead of one uniform gap. Terminals are softly rounded so
+// the mark reads as drawn rather than assembled from blocks.
 // ---------------------------------------------------------------------------
 function wordmarkVerticalExtent(size) {
   const u = size / 1024;
-  const H = 196 * u;
+  const H = 236 * u;
   const y0 = (size - H) / 2;
   return { y0, H };
 }
 
 function wordmarkRects(size) {
   const u = size / 1024; // scale factor from reference units
-  const S = 42 * u; // stroke
-  const wide = 122 * u; // width of L, F, E
-  const narrow = S; // width of I
-  const gap = 46 * u;
-  const barLen = 100 * u; // F/E middle bar length
+  const S = 36 * u; // stroke
+  const wide = 132 * u; // advance width of L, F, E
   const { y0, H } = wordmarkVerticalExtent(size);
+  const r = S * 0.18; // terminal softening
 
-  const totalW = wide + gap + narrow + gap + wide + gap + wide;
+  // Optical sidebearings. A bare I stem needs more air than a letter with a
+  // closed left side, and E following F's open right side needs less.
+  const gapLI = 62 * u;
+  const gapIF = 60 * u;
+  const gapFE = 50 * u;
+
+  // Middle bars sit a touch above true center (classic optical correction —
+  // a mathematically centered bar looks low) and run slightly short of the
+  // full width so the letters don't read as closed boxes.
+  const midY = y0 + H * 0.425;
+  const barMid = wide * 0.72;
+  const barTop = wide * 0.94;
+
+  const totalW = wide + gapLI + S + gapIF + wide + gapFE + wide;
   const x0 = (size - totalW) / 2;
 
   const rects = [];
   let x = x0;
 
-  // L: stem + bottom bar
-  rects.push([x, y0, S, H], [x, y0 + H - S, wide, S]);
-  x += wide + gap;
+  // L: stem + foot (foot runs full width — it's the letter's whole identity)
+  rects.push([x, y0, S, H, r], [x, y0 + H - S, wide, S, r]);
+  x += wide + gapLI;
 
-  // I: stem
-  rects.push([x, y0, narrow, H]);
-  x += narrow + gap;
+  // I: single stem
+  rects.push([x, y0, S, H, r]);
+  x += S + gapIF;
 
-  // F: stem + top bar + middle bar
-  rects.push([x, y0, S, H], [x, y0, wide, S], [x, y0 + H * 0.44, barLen, S]);
-  x += wide + gap;
+  // F: stem + arm + shortened mid bar
+  rects.push([x, y0, S, H, r], [x, y0, barTop, S, r], [x, midY, barMid, S, r]);
+  x += wide + gapFE;
 
-  // E: stem + top + middle + bottom bars
+  // E: stem + arm + mid bar + foot
   rects.push(
-    [x, y0, S, H],
-    [x, y0, wide, S],
-    [x, y0 + H * 0.44, barLen, S],
-    [x, y0 + H - S, wide, S]
+    [x, y0, S, H, r],
+    [x, y0, barTop, S, r],
+    [x, midY, barMid, S, r],
+    [x, y0 + H - S, barTop, S, r]
   );
 
   return rects;
 }
 
 // ---------------------------------------------------------------------------
-// Rasterize axis-aligned rects with 4×4 supersampling for clean edges.
+// Rasterize rounded rects via signed distance field — gives true analytic
+// antialiasing (smooth, even edges at every size) rather than the stair-
+// stepping that supersampled hard rects produce at icon scale.
 // ---------------------------------------------------------------------------
+function roundedRectSdf(px, py, rx, ry, rw, rh, r) {
+  const cx = rx + rw / 2;
+  const cy = ry + rh / 2;
+  const hx = rw / 2 - r;
+  const hy = rh / 2 - r;
+  const dx = Math.max(Math.abs(px - cx) - hx, 0);
+  const dy = Math.max(Math.abs(py - cy) - hy, 0);
+  return Math.hypot(dx, dy) - r;
+}
+
 function renderMask(size) {
   const rects = wordmarkRects(size);
-  const px = new Uint8Array(size * size); // white coverage 0-255
-  const SS = 4;
-  const step = 1 / SS;
+  const px = new Uint8Array(size * size);
+  const aa = 0.7; // edge softness in pixels
 
-  for (const [rx, ry, rw, rh] of rects) {
-    const xMin = Math.max(0, Math.floor(rx));
-    const xMax = Math.min(size - 1, Math.ceil(rx + rw));
-    const yMin = Math.max(0, Math.floor(ry));
-    const yMax = Math.min(size - 1, Math.ceil(ry + rh));
+  for (const [rx, ry, rw, rh, r] of rects) {
+    const pad = Math.ceil(r + aa + 1);
+    const xMin = Math.max(0, Math.floor(rx) - pad);
+    const xMax = Math.min(size - 1, Math.ceil(rx + rw) + pad);
+    const yMin = Math.max(0, Math.floor(ry) - pad);
+    const yMax = Math.min(size - 1, Math.ceil(ry + rh) + pad);
+
     for (let y = yMin; y <= yMax; y++) {
       for (let x = xMin; x <= xMax; x++) {
-        let cover = 0;
-        for (let sy = 0; sy < SS; sy++) {
-          for (let sx = 0; sx < SS; sx++) {
-            const cx = x + (sx + 0.5) * step;
-            const cy = y + (sy + 0.5) * step;
-            if (cx >= rx && cx <= rx + rw && cy >= ry && cy <= ry + rh) cover++;
-          }
-        }
-        const v = Math.round((cover / (SS * SS)) * 255);
+        const d = roundedRectSdf(x + 0.5, y + 0.5, rx, ry, rw, rh, r);
+        const cover = Math.max(0, Math.min(1, 0.5 - d / aa));
+        const v = Math.round(cover * 255);
         const i = y * size + x;
         if (v > px[i]) px[i] = v;
       }
@@ -162,14 +188,24 @@ function boxBlur(src, size, radius) {
   return out;
 }
 
+/**
+ * Two-layer glow. A single wide blur just fogs the mark; real emitted light
+ * has a tight bright rim right at the edge plus a much fainter wide bloom.
+ * Keeping the rim tight is what preserves the crispness of the letterforms.
+ */
 function glow(mask, size) {
-  const radius = Math.max(1, Math.round(size * 0.018));
-  let blurred = mask;
-  for (let pass = 0; pass < 3; pass++) blurred = boxBlur(blurred, size, radius);
-  // Blurring dilutes peak intensity; boost it back up so the halo actually reads.
-  const boost = 2.2;
+  const rimRadius = Math.max(1, Math.round(size * 0.006));
+  let rim = mask;
+  for (let pass = 0; pass < 2; pass++) rim = boxBlur(rim, size, rimRadius);
+
+  const bloomRadius = Math.max(2, Math.round(size * 0.022));
+  let bloom = mask;
+  for (let pass = 0; pass < 2; pass++) bloom = boxBlur(bloom, size, bloomRadius);
+
   const out = new Uint8Array(size * size);
-  for (let i = 0; i < out.length; i++) out[i] = Math.min(255, blurred[i] * boost);
+  for (let i = 0; i < out.length; i++) {
+    out[i] = Math.min(255, rim[i] * 1.5 + bloom[i] * 0.7);
+  }
   return out;
 }
 

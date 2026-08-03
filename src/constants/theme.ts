@@ -30,16 +30,16 @@ export const Colors = {
     info: '#2F6CA8',
   },
   dark: {
-    text: '#F4F4F2',
-    textSecondary: '#A0A0A8',
-    textTertiary: '#6E6E76',
-    background: '#0B0B0D',
-    backgroundElement: '#151518',
-    backgroundSelected: '#1E1E22',
-    groupedBackground: '#0B0B0D',
-    separator: 'rgba(255, 255, 255, 0.08)',
+    text: '#FBFBFC',
+    textSecondary: '#9A9DA8',
+    textTertiary: '#63666F',
+    background: '#08090C',
+    backgroundElement: '#141620',
+    backgroundSelected: '#1D202B',
+    groupedBackground: '#08090C',
+    separator: 'rgba(255, 255, 255, 0.07)',
     tint: '#3DBE8B',
-    onTint: '#07130D',
+    onTint: '#04140D',
     success: '#3DBE8B',
     warning: '#D9A03F',
     danger: '#E1584F',
@@ -48,6 +48,22 @@ export const Colors = {
 } as const;
 
 export type ThemeColor = keyof typeof Colors.light & keyof typeof Colors.dark;
+
+/**
+ * Surface materiality. Flat fills read as cardboard; real surfaces catch light
+ * from above. Every card is a top-lit vertical gradient plus a hairline
+ * specular edge — the difference between matte board and polished stone.
+ */
+export const Surface = {
+  /** Card gradient, top (lit) -> bottom (shadowed). */
+  card: ['#191C27', '#111219'] as const,
+  /** Raised/interactive variant, one step brighter. */
+  cardRaised: ['#222634', '#171A24'] as const,
+  /** Hairline highlight along the top edge, where light would hit. */
+  edgeHighlight: 'rgba(255, 255, 255, 0.10)',
+  /** Accent wash for hero surfaces — tint at very low alpha. */
+  accentWash: ['rgba(61, 190, 139, 0.16)', 'rgba(61, 190, 139, 0.02)'] as const,
+} as const;
 
 export const Fonts = Platform.select({
   ios: {
@@ -87,8 +103,29 @@ export const Spacing = {
 export const CornerRadius = {
   small: 8,
   medium: 12,
-  large: 16,
-  xlarge: 20,
+  large: 18,
+  xlarge: 24,
+} as const;
+
+/**
+ * Type scale. The single biggest lever on whether the app reads as a premium
+ * instrument or a spreadsheet: hero numbers are enormous and tightly tracked,
+ * labels are small caps with open tracking, and body sits quietly between
+ * them. Display sizes get negative tracking (large type looks loose by
+ * default); small caps get positive tracking (small type looks cramped).
+ */
+export const Type = {
+  /** Screen-owning number: today's score, a streak count. */
+  display: { fontSize: 64, lineHeight: 64, fontWeight: '800', letterSpacing: -2.5 },
+  /** Secondary hero metric inside a card. */
+  metric: { fontSize: 40, lineHeight: 42, fontWeight: '700', letterSpacing: -1.4 },
+  title: { fontSize: 30, lineHeight: 34, fontWeight: '700', letterSpacing: -0.9 },
+  subtitle: { fontSize: 21, lineHeight: 27, fontWeight: '600', letterSpacing: -0.45 },
+  body: { fontSize: 16, lineHeight: 23, fontWeight: '400', letterSpacing: -0.1 },
+  small: { fontSize: 14, lineHeight: 20, fontWeight: '400', letterSpacing: -0.05 },
+  smallBold: { fontSize: 14, lineHeight: 20, fontWeight: '600', letterSpacing: -0.1 },
+  /** Uppercase section/eyebrow label — the quiet structural voice. */
+  label: { fontSize: 11, lineHeight: 14, fontWeight: '700', letterSpacing: 1.3 },
 } as const;
 
 /**

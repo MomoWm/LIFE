@@ -118,40 +118,44 @@ export default function TodayScreen() {
     <SafeAreaView style={styles.safeArea} edges={['top']}>
       <Screen>
         <Animated.View entering={FadeInDown.duration(350)}>
-          <View style={styles.header}>
-            <View style={styles.headerText}>
-              <ThemedText type="small" themeColor="textSecondary">
-                {format(now, 'EEEE, MMMM d')}
-              </ThemedText>
-              <ThemedText type="subtitle" style={styles.greeting}>
-                {greeting}
-              </ThemedText>
-              <View
-                style={styles.prayerDots}
-                accessible
-                accessibilityLabel={`${prayedCount} of 5 prayers completed`}>
-                {[0, 1, 2, 3, 4].map((i) => (
-                  <View
-                    key={i}
-                    style={[
-                      styles.prayerDot,
-                      {
-                        backgroundColor: i < prayedCount ? theme.tint : theme.backgroundSelected,
-                      },
-                    ]}
-                  />
-                ))}
-                <ThemedText type="small" themeColor="textTertiary" style={styles.prayerDotsLabel}>
-                  prayers
+          <Card raised style={styles.hero}>
+            <ThemedText type="label" themeColor="textTertiary">
+              {format(now, 'EEEE, MMMM d')}
+            </ThemedText>
+
+            <View style={styles.heroBody}>
+              <ProgressRing progress={score} size={140} strokeWidth={8} color={theme.tint}>
+                <ThemedText type="display" style={styles.scoreText}>
+                  {Math.round(score * 100)}
+                </ThemedText>
+              </ProgressRing>
+
+              <View style={styles.heroCopy}>
+                <ThemedText type="title">{greeting}</ThemedText>
+                <ThemedText type="small" themeColor="textSecondary">
+                  {prayedCount} of 5 prayers
+                </ThemedText>
+                <ThemedText type="small" themeColor="textSecondary">
+                  {doneTasks} of {totalTasks || 10} tasks
                 </ThemedText>
               </View>
             </View>
-            <ProgressRing progress={score} size={72} strokeWidth={6} color={theme.tint}>
-              <ThemedText type="smallBold" style={styles.scoreText}>
-                {Math.round(score * 100)}
-              </ThemedText>
-            </ProgressRing>
-          </View>
+
+            <View
+              style={styles.prayerDots}
+              accessible
+              accessibilityLabel={`${prayedCount} of 5 prayers completed`}>
+              {[0, 1, 2, 3, 4].map((i) => (
+                <View
+                  key={i}
+                  style={[
+                    styles.prayerDot,
+                    { backgroundColor: i < prayedCount ? theme.tint : theme.backgroundSelected },
+                  ]}
+                />
+              ))}
+            </View>
+          </Card>
         </Animated.View>
 
         <Animated.View entering={FadeInDown.duration(350).delay(50)} style={styles.statRow}>
@@ -423,35 +427,35 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
   },
-  header: {
+  hero: {
+    gap: Spacing.four,
+    paddingVertical: Spacing.five,
+  },
+  heroBody: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: Spacing.three,
+    gap: Spacing.four,
   },
-  headerText: {
+  heroCopy: {
     flex: 1,
-    gap: 2,
-  },
-  greeting: {
-    fontSize: 28,
-    lineHeight: 34,
+    gap: Spacing.one,
   },
   prayerDots: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 5,
-    marginTop: Spacing.one,
+    gap: Spacing.two,
   },
   prayerDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-  },
-  prayerDotsLabel: {
-    marginLeft: Spacing.one,
+    flex: 1,
+    height: 4,
+    borderRadius: 2,
   },
   scoreText: {
-    fontVariant: ['tabular-nums'],
+    // Stepped down from the display size so the numeral clears the ring
+    // stroke — at full 64px the digits crowd the arc.
+    fontSize: 54,
+    lineHeight: 56,
+    letterSpacing: -2,
   },
   statRow: {
     flexDirection: 'row',
