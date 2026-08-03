@@ -112,21 +112,52 @@ export default function TodayScreen() {
               <ThemedText type="subtitle" style={styles.greeting}>
                 {greeting}
               </ThemedText>
+              <View
+                style={styles.prayerDots}
+                accessible
+                accessibilityLabel={`${prayedCount} of 5 prayers completed`}>
+                {[0, 1, 2, 3, 4].map((i) => (
+                  <View
+                    key={i}
+                    style={[
+                      styles.prayerDot,
+                      {
+                        backgroundColor: i < prayedCount ? theme.tint : theme.backgroundSelected,
+                      },
+                    ]}
+                  />
+                ))}
+                <ThemedText type="small" themeColor="textTertiary" style={styles.prayerDotsLabel}>
+                  prayers
+                </ThemedText>
+              </View>
             </View>
-            <ProgressRing progress={score} size={64} strokeWidth={6} color={theme.success}>
-              <ThemedText type="smallBold">{Math.round(score * 100)}</ThemedText>
+            <ProgressRing progress={score} size={72} strokeWidth={6} color={theme.tint}>
+              <ThemedText type="smallBold" style={styles.scoreText}>
+                {Math.round(score * 100)}
+              </ThemedText>
             </ProgressRing>
           </View>
         </Animated.View>
 
         <Animated.View entering={FadeInDown.duration(350).delay(50)} style={styles.statRow}>
-          <MiniStat symbol="flame.fill" color={theme.warning} value={five45Streak ?? 0} label="545" />
-          <MiniStat symbol="moon.stars.fill" color="#7B68EE" value={prayerStreak ?? 0} label="prayer" />
+          <MiniStat
+            symbol="flame.fill"
+            color={theme.textSecondary}
+            value={five45Streak ?? 0}
+            label="545"
+          />
+          <MiniStat
+            symbol="moon.stars.fill"
+            color={theme.textSecondary}
+            value={prayerStreak ?? 0}
+            label="prayer"
+          />
           <MiniStat
             symbol="bolt.shield.fill"
-            color={theme.tint}
+            color={theme.textSecondary}
             value={retention?.stats.currentStreakDays ?? 0}
-            label="retention"
+            label="discipline"
           />
         </Animated.View>
 
@@ -135,7 +166,7 @@ export default function TodayScreen() {
             <DashboardSection
               title="Morning 5"
               symbol="sunrise.fill"
-              symbolColor={theme.warning}
+              symbolColor={theme.textSecondary}
               href="/five45"
               delay={100}>
               {wakeTasks.length === 0 ? (
@@ -161,7 +192,7 @@ export default function TodayScreen() {
             {upcoming && times ? (
               <InfoCard
                 symbol="moon.stars.fill"
-                color="#7B68EE"
+                color={theme.textSecondary}
                 title={`${PRAYER_LABELS[upcoming]} at ${format(times[upcoming], 'h:mm a')}`}
                 subtitle={`${prayedCount}/5 prayed so far`}
                 href="/prayer"
@@ -186,7 +217,7 @@ export default function TodayScreen() {
             <DashboardSection
               title="Knocking hours"
               symbol="briefcase.fill"
-              symbolColor={theme.tint}
+              symbolColor={theme.textSecondary}
               href="/work"
               delay={100}>
               <View style={styles.workRow}>
@@ -211,7 +242,7 @@ export default function TodayScreen() {
             {split ? (
               <InfoCard
                 symbol="dumbbell.fill"
-                color={theme.success}
+                color={theme.textSecondary}
                 title={split.isRest ? 'Rest day' : `Day ${workout?.cycleDay}: ${split.label}`}
                 subtitle={
                   split.isRest
@@ -227,7 +258,7 @@ export default function TodayScreen() {
             {upcoming && times ? (
               <InfoCard
                 symbol="moon.stars.fill"
-                color="#7B68EE"
+                color={theme.textSecondary}
                 title={`${PRAYER_LABELS[upcoming]} at ${format(times[upcoming], 'h:mm a')}`}
                 subtitle={`${prayedCount}/5 prayed so far`}
                 href="/prayer"
@@ -242,7 +273,7 @@ export default function TodayScreen() {
             <DashboardSection
               title="Non-negotiables"
               symbol="moon.stars.fill"
-              symbolColor="#7B68EE"
+              symbolColor={theme.textSecondary}
               href="/five45"
               delay={100}>
               {eodTasks.length === 0 ? (
@@ -390,6 +421,23 @@ const styles = StyleSheet.create({
   greeting: {
     fontSize: 28,
     lineHeight: 34,
+  },
+  prayerDots: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    marginTop: Spacing.one,
+  },
+  prayerDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  prayerDotsLabel: {
+    marginLeft: Spacing.one,
+  },
+  scoreText: {
+    fontVariant: ['tabular-nums'],
   },
   statRow: {
     flexDirection: 'row',

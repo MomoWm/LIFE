@@ -1,18 +1,23 @@
 import { useState } from 'react';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Spacing } from '@/constants/theme';
+import { TextField } from '@/components/ui/text-field';
+import { Motion, Spacing } from '@/constants/theme';
 import { isSupabaseConfigured } from '@/lib/supabase/client';
-import { continueAnonymously } from '@/lib/supabase/auth';
+import { continueAnonymously, sendSignInCode, verifySignInCode } from '@/lib/supabase/auth';
 
 export default function SignInScreen() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [emailStep, setEmailStep] = useState<'closed' | 'email' | 'code'>('closed');
+  const [email, setEmail] = useState('');
+  const [code, setCode] = useState('');
 
   if (!isSupabaseConfigured) {
     return (
@@ -46,31 +51,128 @@ export default function SignInScreen() {
     }
   };
 
+  const handleSendCode = async () => {
+    setError(null);
+    setIsSubmitting(true);
+    try {
+      await sendSignInCode(email.trim());
+      setEmailStep('code');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not send the code. Try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleVerifyCode = async () => {
+    setError(null);
+    setIsSubmitting(true);
+    try {
+      await verifySignInCode(email.trim(), code.trim());
+      // Session listener redirects on success.
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'That code didn’t work. Check it and retry.');
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <ThemedView style={styles.container}>
-        <ThemedText type="title" style={styles.title}>
-          LIFE
-        </ThemedText>
-        <ThemedText themeColor="textSecondary" style={styles.subtitle}>
-          Your 545, prayers, retention, sleep, workouts, and work tracking — synced to this
-          device.
-        </ThemedText>
+        <Animated.View entering={FadeIn.duration(Motion.entry * 2)}>
+          <ThemedText type="title" style={styles.wordmark}>
+            LIFE
+          </ThemedText>
+        </Animated.View>
 
-        <Card style={styles.card}>
+        <Animated.View
+          entering={FadeInDown.duration(Motion.entry).delay(200)}
+          style={styles.actions}>
           {error ? (
-            <ThemedText themeColor="danger" type="small">
+            <ThemedText themeColor="danger" type="small" style={styles.error}>
               {error}
             </ThemedText>
           ) : null}
 
-          <Button
-            title={isSubmitting ? 'Starting…' : 'Get started'}
-            onPress={handleContinue}
-            disabled={isSubmitting}
-          />
-        </Card>
+          {emailStep === 'closed' ? (
+            <>
+              <Button
+                title="Get started"
+                onPress={handleContinue}
+                loading={isSubmitting}
+                disabled={isSubmitting}
+              />
+              <Button
+                title="Sign in with email"
+                variant="plain"
+                onPress={() => setEmailStep('email')}
+                disabled={isSubmitting}
+              />
+            </>
+          ) : null}
+
+          {emailStep === 'email' ? (
+            <>
+              <TextField
+                value={email}
+                onChangeText={setEmail}
+                placeholder="you@example.com"
+                autoCapitalize="none"
+                autoComplete="email"
+                keyboardType="email-address"
+                autoFocus
+              />
+              <Button
+                title="Send code"
+                onPress={handleSendCode}
+                loading={isSubmitting}
+                disabled={isSubmitting || !email.includes('@')}
+              />
+              <Button
+                title="Back"
+                variant="plain"
+                onPress={() => {
+                  setEmailStep('closed');
+                  setError(null);
+                }}
+                disabled={isSubmitting}
+              />
+            </>
+          ) : null}
+
+          {emailStep === 'code' ? (
+            <>
+              <ThemedText type="small" themeColor="textSecondary" style={styles.error}>
+                Enter the 6-digit code sent to {email.trim()}.
+              </ThemedText>
+              <TextField
+                value={code}
+                onChangeText={setCode}
+                placeholder="123456"
+                keyboardType="number-pad"
+                maxLength={6}
+                autoFocus
+              />
+              <Button
+                title="Sign in"
+                onPress={handleVerifyCode}
+                loading={isSubmitting}
+                disabled={isSubmitting || code.trim().length < 6}
+              />
+              <Button
+                title="Back"
+                variant="plain"
+                onPress={() => {
+                  setEmailStep('email');
+                  setError(null);
+                }}
+                disabled={isSubmitting}
+              />
+            </>
+          ) : null}
+        </Animated.View>
       </ThemedView>
+      <View style={styles.footerSpace} />
     </SafeAreaView>
   );
 }
@@ -82,20 +184,29 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: 'center',
-    paddingHorizontal: Spacing.four,
-    gap: Spacing.two,
+    paddingHorizontal: Spacing.five,
+    gap: Spacing.six,
   },
-  title: {
+  wordmark: {
     textAlign: 'center',
+    fontSize: 64,
+    lineHeight: 72,
+    fontWeight: '800',
+    letterSpacing: 14,
+    // Optical centering: letter-spacing trails the final glyph, nudging the
+    // wordmark left — pad it back.
+    paddingLeft: 14,
   },
-  subtitle: {
+  actions: {
+    gap: Spacing.three,
+  },
+  error: {
     textAlign: 'center',
-    marginBottom: Spacing.four,
   },
   setupText: {
     marginTop: Spacing.two,
   },
-  card: {
-    gap: Spacing.three,
+  footerSpace: {
+    height: Spacing.six,
   },
 });
