@@ -128,6 +128,45 @@ export function usePrayerStreak() {
   });
 }
 
+/**
+ * Prayed-count per day over a trailing window, oldest first. Days with no
+ * logs at all come back as null rather than 0 so the UI can distinguish
+ * "nothing recorded" from "recorded none" — collapsing them would overstate
+ * a bad week.
+ */
+export function usePrayerRange(days: number) {
+  const userId = useUserId();
+  const to = todayIso();
+  const from = format(addDays(parseISO(to), -(days - 1)), 'yyyy-MM-dd');
+
+  return useQuery({
+    queryKey: [...queryKeys.prayerHistory(userId), 'range', days] as const,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('prayer_logs')
+        .select('date, prayer, status')
+        .eq('user_id', userId)
+        .gte('date', from)
+        .lte('date', to);
+      if (error) throw error;
+
+      const seen = new Map<string, number>();
+      for (const row of data as Pick<PrayerLogRow, 'date' | 'prayer' | 'status'>[]) {
+        if (!seen.has(row.date)) seen.set(row.date, 0);
+        if (row.status === 'on_time' || row.status === 'late') {
+          seen.set(row.date, seen.get(row.date)! + 1);
+        }
+      }
+
+      return Array.from({ length: days }, (_, i) => {
+        const date = format(addDays(parseISO(to), i - (days - 1)), 'yyyy-MM-dd');
+        return { date, prayed: seen.has(date) ? seen.get(date)! : null };
+      });
+    },
+    enabled: !!userId,
+  });
+}
+
 export function useQadaBalance() {
   const userId = useUserId();
 

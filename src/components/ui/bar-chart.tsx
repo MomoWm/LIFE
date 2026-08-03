@@ -24,15 +24,30 @@ export function BarChart({ data, height = 120, color, formatValue }: BarChartPro
   const theme = useTheme();
   const [width, setWidth] = useState(0);
   const barColor = color ?? theme.tint;
-  const max = Math.max(1, ...data.map((d) => d.value));
+  const peak = Math.max(0, ...data.map((d) => d.value));
+  // Clamping the divisor keeps the bar maths safe, but the *label* must come
+  // from the real peak — quoting "max 0h 1m" for an empty series states a
+  // measurement that was never taken.
+  const max = Math.max(1, peak);
+  const hasData = peak > 0;
 
   const gap = 4;
   const barWidth = data.length > 0 ? Math.max(2, (width - gap * (data.length - 1)) / data.length) : 0;
 
+  if (!hasData) {
+    return (
+      <View style={styles.empty}>
+        <ThemedText type="small" themeColor="textTertiary">
+          Nothing logged yet.
+        </ThemedText>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container} onLayout={(e) => setWidth(e.nativeEvent.layout.width)}>
       {formatValue ? (
-        <ThemedText type="small" themeColor="textSecondary" style={styles.maxLabel}>
+        <ThemedText type="small" themeColor="textTertiary" style={styles.maxLabel}>
           max {formatValue(max)}
         </ThemedText>
       ) : null}
@@ -83,6 +98,9 @@ export function BarChart({ data, height = 120, color, formatValue }: BarChartPro
 const styles = StyleSheet.create({
   container: {
     gap: Spacing.one,
+  },
+  empty: {
+    paddingVertical: Spacing.three,
   },
   maxLabel: {
     alignSelf: 'flex-end',

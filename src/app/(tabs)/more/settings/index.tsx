@@ -6,6 +6,7 @@ import { Alert, StyleSheet, View } from 'react-native';
 import { ThemedText } from '@/components/themed-text';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { Section, SectionDivider } from '@/components/ui/section';
 import { ListRow } from '@/components/ui/list-row';
 import { Screen } from '@/components/ui/screen';
 import { TextField } from '@/components/ui/text-field';
@@ -158,22 +159,23 @@ export default function SettingsScreen() {
           </Card>
         )}
 
-        <Card style={styles.card}>
+        <Section title="Preferences" contentStyle={styles.rows}>
           <ListRow
             title="Notifications"
             subtitle="Prayer times, morning nudge, weekly review"
-            leading={<Icon name="bell.badge.fill" size={20} tintColor={theme.textSecondary} />}
+            leading={<Icon name="bell.badge.fill" size={19} tintColor={theme.textSecondary} />}
             showChevron
             onPress={() => router.push('/more/settings/notifications')}
           />
+          <SectionDivider inset={35} />
           <ListRow
             title="Prayer settings"
             subtitle="Location, calculation method, madhab"
-            leading={<Icon name="moon.stars.fill" size={20} tintColor={theme.textSecondary} />}
+            leading={<Icon name="moon.stars.fill" size={19} tintColor={theme.textSecondary} />}
             showChevron
             onPress={() => router.push('/more/settings/prayer')}
           />
-        </Card>
+        </Section>
 
         <Button title="Sign out" variant="destructive" onPress={handleSignOut} />
       </Screen>
@@ -184,6 +186,9 @@ export default function SettingsScreen() {
 const styles = StyleSheet.create({
   card: {
     gap: Spacing.two,
+  },
+  rows: {
+    gap: 0,
   },
   linkForm: {
     gap: Spacing.two,

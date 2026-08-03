@@ -1,21 +1,23 @@
-import { Link, Stack } from 'expo-router';
-import { Icon, type IconName } from '@/components/ui/icon';
+import { Stack, router } from 'expo-router';
+import { Icon } from '@/components/ui/icon';
 import { Pressable, StyleSheet, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 
 import { ThemedText } from '@/components/themed-text';
 import { Card } from '@/components/ui/card';
 import { CheckboxRow } from '@/components/ui/checkbox-row';
+import { SegmentedProgress } from '@/components/ui/progress-bar';
 import { ProgressRing } from '@/components/ui/progress-ring';
 import { Screen } from '@/components/ui/screen';
-import { Spacing } from '@/constants/theme';
+import { Section, SectionDivider } from '@/components/ui/section';
+import { Domain, Spacing } from '@/constants/theme';
 import { DAY_TYPE_LABELS } from '@/lib/dayType/dayType';
 import { useActiveGoals, useFive45Streak, useFive45Today, useToggleTask } from '@/hooks/use-five45';
 import { useTheme } from '@/hooks/use-theme';
 
 export default function Five45Screen() {
   const theme = useTheme();
-  const { data: today, isPending } = useFive45Today();
+  const { data: today } = useFive45Today();
   const { data: streak } = useFive45Streak();
   const { data: goals } = useActiveGoals();
   const toggleTask = useToggleTask();
@@ -23,223 +25,250 @@ export default function Five45Screen() {
   const wakeTasks = today?.tasks.filter((t) => t.kind === 'wake') ?? [];
   const eodTasks = today?.tasks.filter((t) => t.kind === 'eod') ?? [];
   const totalTasks = wakeTasks.length + eodTasks.length;
-  const doneCount =
-    today?.tasks.filter((t) => today.completedTaskIds.has(t.id)).length ?? 0;
+  const isDone = (id: string) => today?.completedTaskIds.has(id) ?? false;
+  const doneCount = today?.tasks.filter((t) => isDone(t.id)).length ?? 0;
+  const wakeDone = wakeTasks.filter((t) => isDone(t.id)).length;
+  const eodDone = eodTasks.filter((t) => isDone(t.id)).length;
   const progress = totalTasks > 0 ? doneCount / totalTasks : 0;
+
+  const toggle = (id: string) => toggleTask.mutate({ taskId: id, completed: isDone(id) });
 
   return (
     <>
       <Stack.Screen
         options={{
-          title: '545',
+          title: 'Routine',
           headerRight: () => (
-            <Link href="/five45/templates" asChild>
-              <Pressable hitSlop={8}>
-                <Icon name="slider.horizontal.3" size={22} tintColor={theme.tint} />
-              </Pressable>
-            </Link>
+            <Pressable onPress={() => router.push('/five45/templates')} hitSlop={8}>
+              <Icon name="slider.horizontal.3" size={20} tintColor={theme.textSecondary} />
+            </Pressable>
           ),
         }}
       />
       <Screen>
-        <Animated.View entering={FadeInDown.duration(350)}>
-          <Card style={styles.headerCard}>
-            <ProgressRing progress={progress} size={72} strokeWidth={7}>
-              <ThemedText type="smallBold">
-                {doneCount}/{totalTasks || 10}
-              </ThemedText>
-            </ProgressRing>
-            <View style={styles.headerText}>
-              <ThemedText type="subtitle" style={styles.headerTitle}>
-                {today ? DAY_TYPE_LABELS[today.dayType].split(' (')[0] : ' '}
-              </ThemedText>
-              <View style={styles.streakRow}>
-                <Icon name="flame.fill" size={16} tintColor={theme.textSecondary} />
-                <ThemedText type="small" themeColor="textSecondary">
-                  {streak ?? 0} day streak
+        {/* Progress first: the ring and the two phase bars say where the day
+            stands before any label is read. */}
+        <Animated.View entering={FadeInDown.duration(320)}>
+          <Card raised style={styles.hero}>
+            <View style={styles.heroTop}>
+              <ProgressRing progress={progress} size={92} strokeWidth={7} color={Domain.routine}>
+                <ThemedText type="metricSmall">
+                  {doneCount}
+                  <ThemedText type="small" themeColor="textTertiary">
+                    /{totalTasks || 10}
+                  </ThemedText>
                 </ThemedText>
+              </ProgressRing>
+              <View style={styles.heroCopy}>
+                <ThemedText type="label" themeColor="textTertiary">
+                  {today ? DAY_TYPE_LABELS[today.dayType].split(' (')[0] : ' '}
+                </ThemedText>
+                <ThemedText type="subtitle">
+                  {progress === 1 && totalTasks > 0 ? 'Day complete' : 'In progress'}
+                </ThemedText>
+                <View style={styles.streakLine}>
+                  <Icon name="flame.fill" size={13} tintColor={theme.textTertiary} />
+                  <ThemedText type="small" themeColor="textSecondary">
+                    {streak ?? 0} day streak
+                  </ThemedText>
+                </View>
+              </View>
+            </View>
+
+            <View style={styles.phaseRow}>
+              <View style={styles.phase}>
+                <View style={styles.phaseHead}>
+                  <ThemedText type="label" themeColor="textTertiary">
+                    Morning
+                  </ThemedText>
+                  <ThemedText type="label" themeColor="textSecondary">
+                    {wakeDone}/{wakeTasks.length || 5}
+                  </ThemedText>
+                </View>
+                <SegmentedProgress
+                  total={wakeTasks.length || 5}
+                  filled={wakeDone}
+                  color={Domain.routine}
+                  label={`Morning ${wakeDone} of ${wakeTasks.length || 5}`}
+                />
+              </View>
+              <View style={styles.phase}>
+                <View style={styles.phaseHead}>
+                  <ThemedText type="label" themeColor="textTertiary">
+                    Evening
+                  </ThemedText>
+                  <ThemedText type="label" themeColor="textSecondary">
+                    {eodDone}/{eodTasks.length || 5}
+                  </ThemedText>
+                </View>
+                <SegmentedProgress
+                  total={eodTasks.length || 5}
+                  filled={eodDone}
+                  color={Domain.routine}
+                  label={`Evening ${eodDone} of ${eodTasks.length || 5}`}
+                />
               </View>
             </View>
           </Card>
         </Animated.View>
 
-        <Animated.View entering={FadeInDown.duration(350).delay(60)}>
-          <SectionCard
+        <Animated.View entering={FadeInDown.duration(320).delay(60)}>
+          <Section
             title="Morning 5"
-            symbol="sunrise.fill"
-            symbolColor={theme.textSecondary}
-            emptyHint="Set your 5 wake-up tasks in the template editor (top right).">
-            {wakeTasks.map((task) => (
-              <CheckboxRow
-                key={task.id}
-                title={task.title}
-                checked={today?.completedTaskIds.has(task.id) ?? false}
-                onToggle={() =>
-                  toggleTask.mutate({
-                    taskId: task.id,
-                    completed: today?.completedTaskIds.has(task.id) ?? false,
-                  })
-                }
-              />
-            ))}
-          </SectionCard>
+            trailing={
+              <ThemedText type="label" themeColor="textSecondary">
+                {wakeDone}/{wakeTasks.length || 5}
+              </ThemedText>
+            }>
+            {wakeTasks.length === 0 ? (
+              <EmptyLine text="Set your 5 wake-up tasks in the template editor." />
+            ) : (
+              wakeTasks.map((task) => (
+                <CheckboxRow
+                  key={task.id}
+                  title={task.title}
+                  checked={isDone(task.id)}
+                  onToggle={() => toggle(task.id)}
+                />
+              ))
+            )}
+          </Section>
         </Animated.View>
 
-        <Animated.View entering={FadeInDown.duration(350).delay(120)}>
-          <Link href="/five45/goals" asChild>
-            <Pressable style={({ pressed }) => pressed && styles.pressed}>
-              <SectionCard
-                title="4 Goals · 3 months"
-                symbol="target"
-                symbolColor={theme.tint}
-                emptyHint="Tap to set your 4 short-term goals.">
-                {(goals ?? []).map((goal) => (
-                  <View key={goal.id} style={styles.goalRow}>
-                    <View style={[styles.goalDot, { backgroundColor: theme.tint }]} />
+        {/* Goals sit between the two task blocks the way they sit between the
+            two ends of the day — the quarter-long work the daily reps serve. */}
+        <Animated.View entering={FadeInDown.duration(320).delay(110)}>
+          <Section
+            title="4 Goals · this quarter"
+            onPress={() => router.push('/five45/goals')}
+            contentStyle={styles.goalList}>
+            {(goals ?? []).length === 0 ? (
+              <EmptyLine text="Set your 4 short-term goals." />
+            ) : (
+              (goals ?? []).map((goal, i) => (
+                <View key={goal.id}>
+                  {i > 0 ? <SectionDivider /> : null}
+                  <View style={styles.goalRow}>
+                    <ThemedText type="label" themeColor="textTertiary" style={styles.goalIndex}>
+                      {i + 1}
+                    </ThemedText>
                     <ThemedText style={styles.goalTitle} numberOfLines={1}>
                       {goal.title}
                     </ThemedText>
                   </View>
-                ))}
-              </SectionCard>
-            </Pressable>
-          </Link>
+                </View>
+              ))
+            )}
+          </Section>
         </Animated.View>
 
-        <Animated.View entering={FadeInDown.duration(350).delay(180)}>
-          <SectionCard
+        <Animated.View entering={FadeInDown.duration(320).delay(160)}>
+          <Section
             title="Non-negotiables"
-            symbol="moon.stars.fill"
-            symbolColor={theme.textSecondary}
-            emptyHint="Set your 5 before-sleep non-negotiables in the template editor.">
-            {eodTasks.map((task) => (
-              <CheckboxRow
-                key={task.id}
-                title={task.title}
-                checked={today?.completedTaskIds.has(task.id) ?? false}
-                onToggle={() =>
-                  toggleTask.mutate({
-                    taskId: task.id,
-                    completed: today?.completedTaskIds.has(task.id) ?? false,
-                  })
-                }
-              />
-            ))}
-          </SectionCard>
+            trailing={
+              <ThemedText type="label" themeColor="textSecondary">
+                {eodDone}/{eodTasks.length || 5}
+              </ThemedText>
+            }>
+            {eodTasks.length === 0 ? (
+              <EmptyLine text="Set your 5 before-sleep non-negotiables." />
+            ) : (
+              eodTasks.map((task) => (
+                <CheckboxRow
+                  key={task.id}
+                  title={task.title}
+                  checked={isDone(task.id)}
+                  onToggle={() => toggle(task.id)}
+                />
+              ))
+            )}
+          </Section>
         </Animated.View>
 
-        <Animated.View entering={FadeInDown.duration(350).delay(240)}>
-          <Link href="/five45/review" asChild>
-            <Pressable style={({ pressed }) => pressed && styles.pressed}>
-              <Card style={styles.reviewRow}>
-                <Icon name="checkmark.rectangle.stack.fill" size={18} tintColor={theme.tint} />
-                <ThemedText type="smallBold" style={styles.reviewTitle}>
-                  Weekly review
-                </ThemedText>
-                <ThemedText type="small" themeColor="textSecondary">
-                  {new Date().getDay() === 0 ? 'due today' : 'Sundays'}
-                </ThemedText>
-                <Icon name="chevron.right" size={13} weight="semibold" tintColor={theme.textSecondary} />
-              </Card>
-            </Pressable>
-          </Link>
+        {/* An inline row, not a card — it is one line of text and a link. */}
+        <Animated.View entering={FadeInDown.duration(320).delay(210)}>
+          <Pressable onPress={() => router.push('/five45/review')} accessibilityRole="button">
+            <View style={[styles.reviewRow, { borderTopColor: theme.separator }]}>
+              <Icon name="checkmark.rectangle.stack.fill" size={16} tintColor={theme.textSecondary} />
+              <ThemedText type="smallBold" style={styles.reviewTitle}>
+                Weekly review
+              </ThemedText>
+              <ThemedText type="label" themeColor="textTertiary">
+                {new Date().getDay() === 0 ? 'Due today' : 'Sundays'}
+              </ThemedText>
+              <Icon name="chevron.right" size={12} weight="semibold" tintColor={theme.textTertiary} />
+            </View>
+          </Pressable>
         </Animated.View>
 
-        {isPending ? (
-          <ThemedText type="small" themeColor="textSecondary" style={styles.loading}>
-            Loading today…
-          </ThemedText>
-        ) : null}
       </Screen>
     </>
   );
 }
 
-function SectionCard({
-  title,
-  symbol,
-  symbolColor,
-  emptyHint,
-  children,
-}: {
-  title: string;
-  symbol: IconName;
-  symbolColor: string;
-  emptyHint: string;
-  children: React.ReactNode;
-}) {
-  const isEmpty = !children || (Array.isArray(children) && children.length === 0);
+function EmptyLine({ text }: { text: string }) {
   return (
-    <Card style={styles.sectionCard}>
-      <View style={styles.sectionHeader}>
-        <Icon name={symbol} size={18} tintColor={symbolColor} />
-        <ThemedText type="smallBold">{title}</ThemedText>
-      </View>
-      {isEmpty ? (
-        <ThemedText type="small" themeColor="textSecondary">
-          {emptyHint}
-        </ThemedText>
-      ) : (
-        children
-      )}
-    </Card>
+    <ThemedText type="small" themeColor="textTertiary">
+      {text}
+    </ThemedText>
   );
 }
 
 const styles = StyleSheet.create({
-  headerCard: {
+  hero: {
+    gap: Spacing.four,
+  },
+  heroTop: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.three,
   },
-  headerText: {
+  heroCopy: {
     flex: 1,
     gap: Spacing.one,
   },
-  headerTitle: {
-    fontSize: 24,
-    lineHeight: 30,
-  },
-  streakRow: {
+  streakLine: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: Spacing.one,
+    gap: Spacing.one + 2,
   },
-  sectionCard: {
-    gap: Spacing.one,
-  },
-  sectionHeader: {
+  phaseRow: {
     flexDirection: 'row',
+    gap: Spacing.four,
+  },
+  phase: {
+    flex: 1,
+    gap: Spacing.one + 2,
+  },
+  phaseHead: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    gap: Spacing.two,
-    marginBottom: Spacing.one,
+  },
+  goalList: {
+    gap: 0,
   },
   goalRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: Spacing.two,
-    minHeight: 34,
+    gap: Spacing.three,
+    minHeight: 44,
   },
-  goalDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+  goalIndex: {
+    width: 12,
   },
   goalTitle: {
     flex: 1,
   },
-  pressed: {
-    opacity: 0.8,
-  },
   reviewRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: Spacing.two,
+    gap: Spacing.two + 2,
+    minHeight: 52,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    paddingTop: Spacing.three,
   },
   reviewTitle: {
     flex: 1,
-  },
-  loading: {
-    textAlign: 'center',
   },
 });

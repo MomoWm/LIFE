@@ -1,14 +1,28 @@
 import { HeaderHeightContext } from '@react-navigation/elements';
 import type { PropsWithChildren } from 'react';
 import { useContext } from 'react';
-import { Platform, ScrollView, StyleSheet, type StyleProp, type ViewStyle } from 'react-native';
+import {
+  Platform,
+  ScrollView,
+  StyleSheet,
+  useWindowDimensions,
+  View,
+  type StyleProp,
+  type ViewStyle,
+} from 'react-native';
 
-import { Spacing } from '@/constants/theme';
+import { MaxContentWidth, Spacing, WideBreakpoint } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
 type ScreenProps = PropsWithChildren<{
   contentStyle?: StyleProp<ViewStyle>;
 }>;
+
+/** True on iPad and other wide viewports — screens use it to go two-column. */
+export function useIsWide() {
+  const { width } = useWindowDimensions();
+  return width >= WideBreakpoint;
+}
 
 /**
  * Standard scrollable screen body. `contentInsetAdjustmentBehavior` keeps
@@ -23,28 +37,41 @@ type ScreenProps = PropsWithChildren<{
 export function Screen({ children, contentStyle }: ScreenProps) {
   const theme = useTheme();
   const headerHeight = useContext(HeaderHeightContext) ?? 0;
+  const isWide = useIsWide();
+
   return (
     <ScrollView
       style={{ backgroundColor: theme.background }}
       contentInsetAdjustmentBehavior="automatic"
       keyboardShouldPersistTaps="handled"
       contentContainerStyle={[
-        styles.content,
+        styles.outer,
+        isWide && styles.outerWide,
         Platform.OS === 'web' && headerHeight > 0 && { paddingTop: headerHeight + Spacing.three },
-        contentStyle,
       ]}>
-      {children}
+      {/* Capped and centred so an iPad doesn't stretch a phone layout across
+          1000pt of width — long measures and marooned controls are what make a
+          tablet build feel like an enlarged phone. */}
+      <View style={[styles.inner, isWide && styles.innerWide, contentStyle]}>{children}</View>
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  content: {
-    padding: Spacing.three,
-    // Cards carry their own generous internal padding, so the rhythm between
-    // them is what creates calm — cramped gaps are what made this read as a
-    // dense data table rather than a considered instrument.
-    gap: Spacing.four,
+  outer: {
+    paddingHorizontal: Spacing.three,
     paddingBottom: Spacing.six,
+    alignItems: 'center',
+  },
+  outerWide: {
+    paddingHorizontal: Spacing.five,
+  },
+  inner: {
+    width: '100%',
+    maxWidth: MaxContentWidth,
+    gap: Spacing.four,
+  },
+  innerWide: {
+    gap: Spacing.five,
   },
 });

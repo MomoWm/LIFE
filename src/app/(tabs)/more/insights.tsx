@@ -1,16 +1,15 @@
 import { format, parseISO } from 'date-fns';
 import { Stack } from 'expo-router';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 
 import { ThemedText } from '@/components/themed-text';
 import { BarChart } from '@/components/ui/bar-chart';
-import { Card } from '@/components/ui/card';
 import { Screen } from '@/components/ui/screen';
-import { StatCard } from '@/components/ui/stat-card';
-import { Spacing } from '@/constants/theme';
+import { Section } from '@/components/ui/section';
+import { Stat } from '@/components/ui/stat';
+import { Domain, Spacing } from '@/constants/theme';
 import { useScoreHistory } from '@/hooks/use-score-history';
-import { useTheme } from '@/hooks/use-theme';
 
 /**
  * Minimum days of real (non-null) history before showing a trend statement —
@@ -20,7 +19,6 @@ import { useTheme } from '@/hooks/use-theme';
 const MIN_SAMPLE_FOR_TREND = 5;
 
 export default function InsightsScreen() {
-  const theme = useTheme();
   const { data: last30 } = useScoreHistory(30);
 
   const scored30 = (last30 ?? []).filter((d): d is { date: string; score: number } => d.score != null);
@@ -47,39 +45,40 @@ export default function InsightsScreen() {
     <>
       <Stack.Screen options={{ title: 'Insights' }} />
       <Screen>
-        <Animated.View entering={FadeInDown.duration(300)} style={styles.statRow}>
-          <StatCard
-            label="7-day avg"
-            value={avg7 != null ? String(Math.round(avg7 * 100)) : '—'}
-            unit="score"
-            symbol="chart.xyaxis.line"
-            symbolColor={theme.textSecondary}
-          />
-          <StatCard
-            label="Best day (30d)"
-            value={best ? String(Math.round(best.score * 100)) : '—'}
-            unit={best ? format(parseISO(best.date), 'MMM d') : undefined}
-            symbol="trophy.fill"
-            symbolColor={theme.textSecondary}
-          />
+        <Animated.View entering={FadeInDown.duration(300)}>
+          <Section title="Score">
+            <View style={styles.statRow}>
+              <Stat
+                value={avg7 != null ? String(Math.round(avg7 * 100)) : '—'}
+                label="7-day avg"
+                size="large"
+                color={Domain.routine}
+              />
+              <Stat
+                value={best ? String(Math.round(best.score * 100)) : '—'}
+                label="Best day"
+                unit={best ? format(parseISO(best.date), 'MMM d') : undefined}
+                size="large"
+              />
+            </View>
+          </Section>
         </Animated.View>
 
         <Animated.View entering={FadeInDown.duration(300).delay(60)}>
-          <Card style={styles.chartCard}>
-            <ThemedText type="smallBold">Last 30 days</ThemedText>
+          <Section title="Last 30 days">
             {chartData.some((d) => d.value > 0) ? (
-              <BarChart data={chartData} formatValue={(v) => `${v}`} color={theme.tint} />
+              <BarChart data={chartData} formatValue={(v) => `${v}`} color={Domain.routine} />
             ) : (
-              <ThemedText type="small" themeColor="textSecondary">
+              <ThemedText type="small" themeColor="textTertiary">
                 No scored days yet — your daily score saves automatically once the Today tab has
                 something to measure.
               </ThemedText>
             )}
-          </Card>
+          </Section>
         </Animated.View>
 
         <Animated.View entering={FadeInDown.duration(300).delay(120)}>
-          <Card style={styles.noteCard}>
+          <Section title="Trend">
             {hasEnoughForTrend && trendDelta != null ? (
               <ThemedText type="small" themeColor="textSecondary">
                 This week averaged {trendDelta >= 0 ? '+' : ''}
@@ -92,7 +91,7 @@ export default function InsightsScreen() {
                 anything. Keep using LIFE daily and this fills in — {scored30.length} so far.
               </ThemedText>
             )}
-          </Card>
+          </Section>
         </Animated.View>
       </Screen>
     </>
@@ -102,12 +101,6 @@ export default function InsightsScreen() {
 const styles = StyleSheet.create({
   statRow: {
     flexDirection: 'row',
-    gap: Spacing.three,
-  },
-  chartCard: {
-    gap: Spacing.two,
-  },
-  noteCard: {
-    gap: Spacing.one,
+    gap: Spacing.five,
   },
 });

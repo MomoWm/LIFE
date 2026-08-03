@@ -8,6 +8,7 @@ export type ThemedTextProps = TextProps & {
     | 'default'
     | 'display'
     | 'metric'
+    | 'metricSmall'
     | 'title'
     | 'subtitle'
     | 'small'
@@ -29,6 +30,7 @@ export function ThemedText({ style, type = 'default', themeColor, ...rest }: The
         type === 'default' && styles.default,
         type === 'display' && styles.display,
         type === 'metric' && styles.metric,
+        type === 'metricSmall' && styles.metricSmall,
         type === 'title' && styles.title,
         type === 'subtitle' && styles.subtitle,
         type === 'small' && styles.small,
@@ -48,6 +50,7 @@ const styles = StyleSheet.create({
   // Hero numerals are always tabular so a ticking counter never reflows.
   display: { ...Type.display, fontVariant: ['tabular-nums'] },
   metric: { ...Type.metric, fontVariant: ['tabular-nums'] },
+  metricSmall: { ...Type.metricSmall, fontVariant: ['tabular-nums'] },
   title: Type.title,
   subtitle: Type.subtitle,
   default: Type.body,
