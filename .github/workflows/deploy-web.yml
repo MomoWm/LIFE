@@ -1,0 +1,39 @@
+name: Verify web build
+
+# Deployment is handled by Vercel's GitHub integration (repo connected in the
+# Vercel dashboard). This workflow only proves the static export still builds,
+# so a broken commit is caught before Vercel picks it up.
+
+on:
+  push:
+    branches: [claude/chat-session-yuw7d2, main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: web-build
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      # Supabase publishable values — these ship inside the client bundle by
+      # design (EXPO_PUBLIC_*); row level security protects the data.
+      EXPO_PUBLIC_SUPABASE_URL: https://txoeibwdqrfuoyonponb.supabase.co
+      EXPO_PUBLIC_SUPABASE_ANON_KEY: sb_publishable_fUsvuR1tGG3Xe69d86nLoQ_86LXSN_j
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Export static web build
+        run: npx expo export --platform web
