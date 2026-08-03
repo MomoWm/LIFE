@@ -2,44 +2,46 @@ import { Tabs } from 'expo-router';
 
 import { HapticTab } from '@/components/haptic-tab';
 import { Icon, type IconName } from '@/components/ui/icon';
-import { Colors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useTheme } from '@/hooks/use-theme';
 
 function TabIcon({ name, color }: { name: IconName; color: string }) {
   return <Icon name={name} size={26} tintColor={color} />;
 }
 
 export default function AppTabs() {
-  const scheme = useColorScheme();
-  const colors = Colors[scheme ?? 'light'];
+  const theme = useTheme();
 
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
         tabBarButton: HapticTab,
-        tabBarActiveTintColor: colors.tint,
-        tabBarInactiveTintColor: colors.textSecondary,
+        tabBarActiveTintColor: theme.text,
+        tabBarInactiveTintColor: theme.textTertiary,
+        tabBarStyle: {
+          backgroundColor: theme.background,
+          borderTopColor: theme.separator,
+        },
       }}>
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Today',
+          title: 'Home',
           tabBarIcon: ({ color }) => <TabIcon name="house.fill" color={color} />,
         }}
       />
       <Tabs.Screen
         name="five45"
         options={{
-          title: '545',
+          title: 'Routine',
           tabBarIcon: ({ color }) => <TabIcon name="checklist" color={color} />,
         }}
       />
       <Tabs.Screen
-        name="trackers"
+        name="prayer"
         options={{
-          title: 'Trackers',
-          tabBarIcon: ({ color }) => <TabIcon name="heart.text.square" color={color} />,
+          title: 'Prayer',
+          tabBarIcon: ({ color }) => <TabIcon name="moon.stars.fill" color={color} />,
         }}
       />
       <Tabs.Screen
@@ -50,10 +52,10 @@ export default function AppTabs() {
         }}
       />
       <Tabs.Screen
-        name="settings"
+        name="more"
         options={{
-          title: 'Settings',
-          tabBarIcon: ({ color }) => <TabIcon name="gearshape.fill" color={color} />,
+          title: 'More',
+          tabBarIcon: ({ color }) => <TabIcon name="ellipsis" color={color} />,
         }}
       />
     </Tabs>

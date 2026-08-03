@@ -31,6 +31,7 @@ const SF_TO_MATERIAL = {
   'clock.arrow.circlepath': 'history',
   'door.left.hand.open': 'door-open',
   'dumbbell.fill': 'dumbbell',
+  ellipsis: 'dots-horizontal',
   'flag.checkered': 'flag-checkered',
   'flame.fill': 'fire',
   'gearshape.fill': 'cog',

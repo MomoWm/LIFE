@@ -6,70 +6,72 @@ import Animated, { FadeInDown } from 'react-native-reanimated';
 import { ThemedText } from '@/components/themed-text';
 import { Card } from '@/components/ui/card';
 import { Screen } from '@/components/ui/screen';
-import { Spacing } from '@/constants/theme';
+import { Motion, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
-type TrackerLink = {
+type MoreLink = {
   href: Href;
   title: string;
   subtitle: string;
   symbol: IconName;
-  color: string;
 };
 
-export default function TrackersScreen() {
+export default function MoreScreen() {
   const theme = useTheme();
 
-  const trackers: TrackerLink[] = [
+  const destinations: MoreLink[] = [
     {
-      href: '/trackers/prayer',
-      title: 'Prayer',
-      subtitle: 'Five daily prayers, streak, and Qada',
-      symbol: 'moon.stars.fill',
-      color: '#7B68EE',
-    },
-    {
-      href: '/trackers/retention',
-      title: 'Retention',
-      subtitle: 'Current streak and history',
-      symbol: 'bolt.shield.fill',
-      color: theme.warning,
-    },
-    {
-      href: '/trackers/sleep',
-      title: 'Sleep',
-      subtitle: 'Bed time, wake time, duration',
-      symbol: 'bed.double.fill',
-      color: theme.tint,
-    },
-    {
-      href: '/trackers/workout',
+      href: '/more/workout',
       title: 'Workout',
       subtitle: '8-day split, sessions, progression',
       symbol: 'dumbbell.fill',
-      color: theme.success,
+    },
+    {
+      href: '/more/retention',
+      title: 'Discipline',
+      subtitle: 'Current streak and history',
+      symbol: 'bolt.shield.fill',
+    },
+    {
+      href: '/more/sleep',
+      title: 'Sleep',
+      subtitle: 'Bed time, wake time, duration',
+      symbol: 'moon.zzz.fill',
+    },
+    {
+      href: '/more/settings',
+      title: 'Settings',
+      subtitle: 'Account, prayer setup, notifications',
+      symbol: 'gearshape.fill',
     },
   ];
 
   return (
     <>
-      <Stack.Screen options={{ title: 'Trackers' }} />
+      <Stack.Screen options={{ title: 'More' }} />
       <Screen>
-        {trackers.map((tracker, index) => (
-          <Animated.View key={tracker.title} entering={FadeInDown.duration(300).delay(index * 60)}>
-            <Link href={tracker.href} asChild>
+        {destinations.map((destination, index) => (
+          <Animated.View
+            key={destination.title}
+            entering={FadeInDown.duration(Motion.entry).delay(index * 40)}>
+            <Link href={destination.href} asChild>
               <Pressable style={({ pressed }) => pressed && styles.pressed}>
                 <Card style={styles.row}>
-                  <View style={[styles.iconBadge, { backgroundColor: tracker.color }]}>
-                    <Icon name={tracker.symbol} size={20} tintColor="#fff" />
+                  <View style={[styles.iconBadge, { backgroundColor: theme.backgroundSelected }]}>
+                    <Icon name={destination.symbol} size={20} tintColor={theme.text} />
                   </View>
                   <View style={styles.textColumn}>
-                    <ThemedText type="smallBold">{tracker.title}</ThemedText>
+                    <ThemedText type="smallBold">{destination.title}</ThemedText>
                     <ThemedText type="small" themeColor="textSecondary">
-                      {tracker.subtitle}
+                      {destination.subtitle}
                     </ThemedText>
                   </View>
-                  <Icon name="chevron.right" size={14} weight="semibold" tintColor={theme.textSecondary} />
+                  <Icon
+                    name="chevron.right"
+                    size={14}
+                    weight="semibold"
+                    tintColor={theme.textTertiary}
+                  />
                 </Card>
               </Pressable>
             </Link>

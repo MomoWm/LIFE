@@ -164,7 +164,7 @@ export default function TodayScreen() {
                 color="#7B68EE"
                 title={`${PRAYER_LABELS[upcoming]} at ${format(times[upcoming], 'h:mm a')}`}
                 subtitle={`${prayedCount}/5 prayed so far`}
-                href="/trackers/prayer"
+                href="/prayer"
                 delay={150}
               />
             ) : null}
@@ -174,7 +174,7 @@ export default function TodayScreen() {
                 color={theme.tint}
                 title="Log last night's sleep"
                 subtitle="Takes ten seconds while the coffee brews"
-                href="/trackers/sleep"
+                href="/more/sleep"
                 delay={200}
               />
             ) : null}
@@ -220,7 +220,7 @@ export default function TodayScreen() {
                       ? 'Session in progress'
                       : 'No session logged yet'
                 }
-                href="/trackers/workout"
+                href="/more/workout"
                 delay={150}
               />
             ) : null}
@@ -230,7 +230,7 @@ export default function TodayScreen() {
                 color="#7B68EE"
                 title={`${PRAYER_LABELS[upcoming]} at ${format(times[upcoming], 'h:mm a')}`}
                 subtitle={`${prayedCount}/5 prayed so far`}
-                href="/trackers/prayer"
+                href="/prayer"
                 delay={200}
               />
             ) : null}
@@ -270,7 +270,7 @@ export default function TodayScreen() {
               color={theme.tint}
               title={`Prayers: ${prayedCount}/5 today`}
               subtitle={upcoming && times ? `${PRAYER_LABELS[upcoming]} still ahead at ${format(times[upcoming], 'h:mm a')}` : 'All prayer times have passed'}
-              href="/trackers/prayer"
+              href="/prayer"
               delay={150}
             />
           </>

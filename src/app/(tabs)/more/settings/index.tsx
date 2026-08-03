@@ -51,14 +51,14 @@ export default function SettingsScreen() {
             subtitle="Prayer times, morning nudge, weekly review"
             leading={<Icon name="bell.badge.fill" size={20} tintColor={theme.danger} />}
             showChevron
-            onPress={() => router.push('/settings/notifications')}
+            onPress={() => router.push('/more/settings/notifications')}
           />
           <ListRow
             title="Prayer settings"
             subtitle="Location, calculation method, madhab"
             leading={<Icon name="moon.stars.fill" size={20} tintColor="#7B68EE" />}
             showChevron
-            onPress={() => router.push('/settings/prayer')}
+            onPress={() => router.push('/more/settings/prayer')}
           />
         </Card>
 

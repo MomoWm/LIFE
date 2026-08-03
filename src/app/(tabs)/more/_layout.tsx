@@ -2,7 +2,7 @@ import { Stack } from 'expo-router';
 
 import { useTheme } from '@/hooks/use-theme';
 
-export default function TrackersLayout() {
+export default function MoreLayout() {
   const theme = useTheme();
   return (
     <Stack

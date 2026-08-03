@@ -40,7 +40,7 @@ export default function WorkoutScreen() {
         options={{
           title: 'Workout',
           headerRight: () => (
-            <Link href="/trackers/workout/history" asChild>
+            <Link href="/more/workout/history" asChild>
               <Pressable hitSlop={8}>
                 <Icon name="clock.arrow.circlepath" size={20} tintColor={theme.tint} />
               </Pressable>
@@ -213,7 +213,7 @@ function ExerciseCard({ entry }: { entry: SessionEntry }) {
 
   return (
     <Card style={styles.exerciseCard}>
-      <Link href={{ pathname: '/trackers/workout/exercise/[id]', params: { id: entry.exercise.id } }} asChild>
+      <Link href={{ pathname: '/more/workout/exercise/[id]', params: { id: entry.exercise.id } }} asChild>
         <Pressable style={({ pressed }) => [styles.exerciseHeader, pressed && styles.pressed]}>
           <ThemedText type="smallBold">{entry.exercise.name}</ThemedText>
           <Icon name="chart.xyaxis.line" size={16} tintColor={theme.tint} />
