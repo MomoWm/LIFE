@@ -1,5 +1,5 @@
 import { format } from 'date-fns';
-import { Link, type Href } from 'expo-router';
+import { router } from 'expo-router';
 import { Icon, type IconName } from '@/components/ui/icon';
 import { useEffect, useRef } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
@@ -9,9 +9,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { ThemedText } from '@/components/themed-text';
 import { Card } from '@/components/ui/card';
 import { CheckboxRow } from '@/components/ui/checkbox-row';
+import { ProgressBar, SegmentedProgress } from '@/components/ui/progress-bar';
 import { ProgressRing } from '@/components/ui/progress-ring';
-import { Screen } from '@/components/ui/screen';
-import { Spacing } from '@/constants/theme';
+import { Screen, useIsWide } from '@/components/ui/screen';
+import { Section, SectionDivider } from '@/components/ui/section';
+import { Stat } from '@/components/ui/stat';
+import { Domain, Spacing } from '@/constants/theme';
 import { todayIso } from '@/lib/dates';
 import { PRAYER_LABELS, computePrayerTimes, nextPrayer } from '@/lib/prayerTimes/adhanClient';
 import { todayPhase } from '@/lib/score/todayPhase';
@@ -29,6 +32,7 @@ import { useWorkoutToday } from '@/hooks/use-workout';
 
 export default function TodayScreen() {
   const theme = useTheme();
+  const isWide = useIsWide();
   const now = new Date();
   const phase = todayPhase(now);
 
@@ -114,328 +118,255 @@ export default function TodayScreen() {
   const greeting =
     phase === 'morning' ? 'Good morning' : phase === 'daytime' ? 'Lock in' : 'Finish strong';
 
+  // Score components, labelled for the hero breakdown. Showing how the number
+  // was reached beats restating it in prose, and it doubles as the answer to
+  // "what should I do next" — the shortest bar is the gap.
+  const breakdown = [
+    { key: 'five45', label: 'Routine', color: Domain.routine },
+    { key: 'prayer', label: 'Prayer', color: Domain.prayer },
+    { key: 'work', label: 'Work', color: Domain.work },
+    { key: 'workout', label: 'Training', color: Domain.training },
+  ].map((row) => {
+    const component = components.find((c) => c.key === row.key);
+    // Categories that don't apply today (a rest day, an unconfigured tracker)
+    // are still listed, marked with a dash rather than a zero. They are
+    // genuinely excluded from the score — showing them as 0% would read as
+    // failure, and hiding them entirely leaves the hero looking half-built.
+    return { ...row, applicable: component?.applicable ?? false, score: component?.score ?? 0 };
+  });
+
+  const phaseTasks = phase === 'evening' ? eodTasks : wakeTasks;
+  const phaseTitle = phase === 'evening' ? 'Non-negotiables' : 'Morning 5';
+
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
       <Screen>
+        {/* ---- Hero: the one Card on the screen, so it reads as the anchor ---- */}
         <Animated.View entering={FadeInDown.duration(350)}>
           <Card raised style={styles.hero}>
-            <ThemedText type="label" themeColor="textTertiary">
-              {format(now, 'EEEE, MMMM d')}
-            </ThemedText>
-
-            <View style={styles.heroBody}>
-              <ProgressRing progress={score} size={140} strokeWidth={8} color={theme.tint}>
+            <View style={styles.heroTop}>
+              <View style={styles.heroHeadline}>
+                <ThemedText type="label" themeColor="textTertiary">
+                  {format(now, 'EEEE, MMMM d')}
+                </ThemedText>
+                <ThemedText type="title">{greeting}</ThemedText>
+              </View>
+              <ProgressRing progress={score} size={104} strokeWidth={7} color={theme.tint}>
                 <ThemedText type="display" style={styles.scoreText}>
                   {Math.round(score * 100)}
                 </ThemedText>
               </ProgressRing>
-
-              <View style={styles.heroCopy}>
-                {/* The score is the hero; the greeting supports it. At title
-                    size it wraps against the ring and competes for rank. */}
-                <ThemedText type="subtitle">{greeting}</ThemedText>
-                <ThemedText type="small" themeColor="textSecondary">
-                  {prayedCount} of 5 prayers
-                </ThemedText>
-                <ThemedText type="small" themeColor="textSecondary">
-                  {doneTasks} of {totalTasks || 10} tasks
-                </ThemedText>
-              </View>
             </View>
 
-            <View
-              style={styles.prayerDots}
-              accessible
-              accessibilityLabel={`${prayedCount} of 5 prayers completed`}>
-              {[0, 1, 2, 3, 4].map((i) => (
-                <View
-                  key={i}
-                  style={[
-                    styles.prayerDot,
-                    {
-                      // The unfilled track needs to read against the raised
-                      // hero surface, which backgroundSelected is too close to.
-                      backgroundColor: i < prayedCount ? theme.tint : 'rgba(255,255,255,0.10)',
-                    },
-                  ]}
-                />
+            <View style={[styles.breakdown, isWide && styles.breakdownWide]}>
+              {breakdown.map((row) => (
+                <View key={row.key} style={styles.breakdownRow}>
+                  <View style={styles.breakdownHead}>
+                    <ThemedText type="label" themeColor="textTertiary">
+                      {row.label}
+                    </ThemedText>
+                    <ThemedText
+                      type="label"
+                      themeColor={row.applicable ? 'textSecondary' : 'textTertiary'}>
+                      {row.applicable ? Math.round(row.score * 100) : '—'}
+                    </ThemedText>
+                  </View>
+                  <ProgressBar
+                    progress={row.applicable ? row.score : 0}
+                    color={row.color}
+                    height={5}
+                    label={
+                      row.applicable
+                        ? `${row.label} ${Math.round(row.score * 100)} percent`
+                        : `${row.label} not counted today`
+                    }
+                  />
+                </View>
               ))}
             </View>
           </Card>
         </Animated.View>
 
-        <Animated.View entering={FadeInDown.duration(350).delay(50)} style={styles.statRow}>
-          <MiniStat
-            symbol="flame.fill"
-            color={theme.textSecondary}
-            value={five45Streak ?? 0}
-            label="545"
-          />
-          <MiniStat
-            symbol="moon.stars.fill"
-            color={theme.textSecondary}
-            value={prayerStreak ?? 0}
-            label="prayer"
-          />
-          <MiniStat
-            symbol="bolt.shield.fill"
-            color={theme.textSecondary}
-            value={retention?.stats.currentStreakDays ?? 0}
-            label="discipline"
-          />
+        {/* ---- Streaks: bare numbers on the ground, no containers ---- */}
+        <Animated.View entering={FadeInDown.duration(350).delay(60)}>
+          <Section title="Streaks">
+            <View style={styles.streakRow}>
+              <Stat value={String(five45Streak ?? 0)} label="Routine" unit="d" color={Domain.routine} />
+              <Stat value={String(prayerStreak ?? 0)} label="Prayer" unit="d" color={Domain.prayer} />
+              <Stat
+                value={String(retention?.stats.currentStreakDays ?? 0)}
+                label="Discipline"
+                unit="d"
+              />
+            </View>
+          </Section>
         </Animated.View>
 
-        {phase === 'morning' ? (
-          <>
-            <DashboardSection
-              title="Morning 5"
-              symbol="sunrise.fill"
-              symbolColor={theme.textSecondary}
-              href="/five45"
-              delay={100}>
-              {wakeTasks.length === 0 ? (
-                <ThemedText type="small" themeColor="textSecondary">
-                  Set up your wake-up tasks in the 545 tab.
+        {/* ---- The actual work for this part of the day ---- */}
+        <Animated.View entering={FadeInDown.duration(350).delay(120)}>
+          <Section
+            title={phaseTitle}
+            trailing={
+              phaseTasks.length > 0 ? (
+                <ThemedText type="label" themeColor="textSecondary">
+                  {phaseTasks.filter((t) => five45?.completedTaskIds.has(t.id)).length}/
+                  {phaseTasks.length}
                 </ThemedText>
-              ) : (
-                wakeTasks.map((task) => (
-                  <CheckboxRow
-                    key={task.id}
-                    title={task.title}
-                    checked={five45?.completedTaskIds.has(task.id) ?? false}
-                    onToggle={() =>
-                      toggleTask.mutate({
-                        taskId: task.id,
-                        completed: five45?.completedTaskIds.has(task.id) ?? false,
-                      })
-                    }
-                  />
-                ))
-              )}
-            </DashboardSection>
-            {upcoming && times ? (
-              <InfoCard
-                symbol="moon.stars.fill"
-                color={theme.textSecondary}
-                title={`${PRAYER_LABELS[upcoming]} at ${format(times[upcoming], 'h:mm a')}`}
-                subtitle={`${prayedCount}/5 prayed so far`}
-                href="/prayer"
-                delay={150}
-              />
-            ) : null}
-            {!sleepLoggedToday ? (
-              <InfoCard
-                symbol="bed.double.fill"
-                color={theme.tint}
-                title="Log last night's sleep"
-                subtitle="Takes ten seconds while the coffee brews"
-                href="/more/sleep"
-                delay={200}
-              />
-            ) : null}
-          </>
-        ) : null}
-
-        {phase === 'daytime' ? (
-          <>
-            <DashboardSection
-              title="Knocking hours"
-              symbol="briefcase.fill"
-              symbolColor={theme.textSecondary}
-              href="/work"
-              delay={100}>
-              <View style={styles.workRow}>
-                <WorkCount value={work?.counts.door ?? 0} label="doors" />
-                <WorkCount
-                  value={work?.counts.interaction ?? 0}
-                  label={`/${interactionsTarget} talks`}
-                />
-                <WorkCount value={work?.counts.pitch ?? 0} label={`/${pitchesTarget} pitches`} />
-                <WorkCount value={work?.counts.appointment ?? 0} label="appts" />
-              </View>
-              <ThemedText type="small" themeColor="textSecondary">
-                {work?.session == null
-                  ? 'Timer not started — tap to open Work.'
-                  : work.session.status === 'active'
-                    ? 'Clock running.'
-                    : work.session.status === 'on_break'
-                      ? 'On break.'
-                      : 'Day ended.'}
+              ) : null
+            }
+            onPress={() => router.push('/five45')}>
+            {phaseTasks.length === 0 ? (
+              <ThemedText type="small" themeColor="textTertiary">
+                No tasks set for today yet — add them in Routine.
               </ThemedText>
-            </DashboardSection>
-            {split ? (
-              <InfoCard
-                symbol="dumbbell.fill"
-                color={theme.textSecondary}
-                title={split.isRest ? 'Rest day' : `Day ${workout?.cycleDay}: ${split.label}`}
-                subtitle={
-                  split.isRest
-                    ? 'Recover — tomorrow goes hard'
-                    : workout?.session
-                      ? 'Session in progress'
-                      : 'No session logged yet'
-                }
-                href="/more/workout"
-                delay={150}
-              />
-            ) : null}
-            {upcoming && times ? (
-              <InfoCard
-                symbol="moon.stars.fill"
-                color={theme.textSecondary}
-                title={`${PRAYER_LABELS[upcoming]} at ${format(times[upcoming], 'h:mm a')}`}
-                subtitle={`${prayedCount}/5 prayed so far`}
-                href="/prayer"
-                delay={200}
-              />
-            ) : null}
-          </>
-        ) : null}
+            ) : (
+              phaseTasks.map((task) => (
+                <CheckboxRow
+                  key={task.id}
+                  title={task.title}
+                  checked={five45?.completedTaskIds.has(task.id) ?? false}
+                  onToggle={() =>
+                    toggleTask.mutate({
+                      taskId: task.id,
+                      completed: five45?.completedTaskIds.has(task.id) ?? false,
+                    })
+                  }
+                />
+              ))
+            )}
+          </Section>
+        </Animated.View>
 
-        {phase === 'evening' ? (
-          <>
-            <DashboardSection
-              title="Non-negotiables"
+        {/* ---- Everything else, grouped into one section with rules between
+               rows rather than four isolated cards ---- */}
+        <Animated.View entering={FadeInDown.duration(350).delay(180)}>
+          <Section title="Today at a glance">
+            <GlanceRow
               symbol="moon.stars.fill"
-              symbolColor={theme.textSecondary}
-              href="/five45"
-              delay={100}>
-              {eodTasks.length === 0 ? (
-                <ThemedText type="small" themeColor="textSecondary">
-                  Set up your non-negotiables in the 545 tab.
-                </ThemedText>
-              ) : (
-                eodTasks.map((task) => (
-                  <CheckboxRow
-                    key={task.id}
-                    title={task.title}
-                    checked={five45?.completedTaskIds.has(task.id) ?? false}
-                    onToggle={() =>
-                      toggleTask.mutate({
-                        taskId: task.id,
-                        completed: five45?.completedTaskIds.has(task.id) ?? false,
-                      })
-                    }
-                  />
-                ))
-              )}
-            </DashboardSection>
-            <InfoCard
-              symbol="moon.zzz.fill"
-              color={theme.tint}
-              title={`Prayers: ${prayedCount}/5 today`}
-              subtitle={upcoming && times ? `${PRAYER_LABELS[upcoming]} still ahead at ${format(times[upcoming], 'h:mm a')}` : 'All prayer times have passed'}
-              href="/prayer"
-              delay={150}
+              color={Domain.prayer}
+              title="Prayer"
+              detail={
+                upcoming && times
+                  ? `${PRAYER_LABELS[upcoming]} at ${format(times[upcoming], 'h:mm a')}`
+                  : 'All prayer times have passed'
+              }
+              onPress={() => router.push('/prayer')}
+              visual={
+                <SegmentedProgress
+                  total={5}
+                  filled={prayedCount}
+                  color={Domain.prayer}
+                  label={`${prayedCount} of 5 prayers`}
+                />
+              }
             />
-          </>
-        ) : null}
+            <SectionDivider inset={44} />
+            <GlanceRow
+              symbol="briefcase.fill"
+              color={Domain.work}
+              title="Work"
+              detail={
+                work?.session == null
+                  ? 'Timer not started'
+                  : work.session.status === 'active'
+                    ? 'Clock running'
+                    : work.session.status === 'on_break'
+                      ? 'On break'
+                      : 'Day ended'
+              }
+              trailing={`${work?.counts.interaction ?? 0}/${interactionsTarget}`}
+              onPress={() => router.push('/work')}
+              visual={
+                <ProgressBar
+                  progress={(work?.counts.interaction ?? 0) / interactionsTarget}
+                  color={Domain.work}
+                  height={4}
+                  label={`${work?.counts.interaction ?? 0} of ${interactionsTarget} interactions`}
+                />
+              }
+            />
+            <SectionDivider inset={44} />
+            <GlanceRow
+              symbol="dumbbell.fill"
+              color={Domain.training}
+              title="Training"
+              detail={
+                split == null
+                  ? 'Cycle not set up'
+                  : split.isRest
+                    ? 'Rest day — recovery counts'
+                    : `Day ${workout?.cycleDay}: ${split.label}`
+              }
+              onPress={() => router.push('/more/workout')}
+            />
+            {!sleepLoggedToday ? (
+              <>
+                <SectionDivider inset={44} />
+                <GlanceRow
+                  symbol="moon.zzz.fill"
+                  color={Domain.sleep}
+                  title="Sleep"
+                  detail="Last night not logged"
+                  onPress={() => router.push('/more/sleep')}
+                />
+              </>
+            ) : null}
+          </Section>
+        </Animated.View>
       </Screen>
     </SafeAreaView>
   );
 }
 
-function MiniStat({
-  symbol,
-  color,
-  value,
-  label,
-}: {
-  symbol: IconName;
-  color: string;
-  value: number;
-  label: string;
-}) {
-  return (
-    <Card style={styles.miniStat}>
-      <Icon name={symbol} size={14} tintColor={color} />
-      <ThemedText type="smallBold" style={styles.miniStatValue}>
-        {value}
-      </ThemedText>
-      <ThemedText type="small" themeColor="textSecondary">
-        {label}
-      </ThemedText>
-    </Card>
-  );
-}
-
-function DashboardSection({
-  title,
-  symbol,
-  symbolColor,
-  href,
-  delay,
-  children,
-}: {
-  title: string;
-  symbol: IconName;
-  symbolColor: string;
-  href: Href;
-  delay: number;
-  children: React.ReactNode;
-}) {
-  const theme = useTheme();
-  return (
-    <Animated.View entering={FadeInDown.duration(350).delay(delay)}>
-      <Card style={styles.sectionCard}>
-        <Link href={href} asChild>
-          {/* Layout lives on an inner View, not on the Pressable: under
-              `Link asChild` on web the Pressable's style is overridden, which
-              silently drops flexDirection and stacks the row vertically. */}
-          <Pressable style={({ pressed }) => (pressed ? styles.pressed : undefined)}>
-            <View style={styles.sectionHeader}>
-              <Icon name={symbol} size={17} tintColor={symbolColor} />
-              <ThemedText type="smallBold" style={styles.sectionTitle}>
-                {title}
-              </ThemedText>
-              <Icon
-                name="chevron.right"
-                size={13}
-                weight="semibold"
-                tintColor={theme.textTertiary}
-              />
-            </View>
-          </Pressable>
-        </Link>
-        {children}
-      </Card>
-    </Animated.View>
-  );
-}
-
-function InfoCard({
+/**
+ * One line of the at-a-glance group: icon, name, current state, and an
+ * optional inline progress visual. Deliberately not a Card — these are peers
+ * inside a single section, and boxing each one is what made the old dashboard
+ * read as a wall of equal-weight tiles.
+ */
+function GlanceRow({
   symbol,
   color,
   title,
-  subtitle,
-  href,
-  delay,
+  detail,
+  trailing,
+  visual,
+  onPress,
 }: {
   symbol: IconName;
   color: string;
   title: string;
-  subtitle: string;
-  href: Href;
-  delay: number;
+  detail: string;
+  trailing?: string;
+  visual?: React.ReactNode;
+  onPress: () => void;
 }) {
   const theme = useTheme();
   return (
-    <Animated.View entering={FadeInDown.duration(350).delay(delay)}>
-      <Link href={href} asChild>
-        <Pressable style={({ pressed }) => pressed && styles.pressed}>
-          <Card style={styles.infoCard}>
-            <Icon name={symbol} size={20} tintColor={color} />
-            <View style={styles.infoText}>
-              <ThemedText type="smallBold">{title}</ThemedText>
-              <ThemedText type="small" themeColor="textSecondary">
-                {subtitle}
+    <Pressable onPress={onPress} accessibilityRole="button">
+      <View style={styles.glance}>
+        <View style={[styles.glanceIcon, { backgroundColor: theme.backgroundElement }]}>
+          <Icon name={symbol} size={17} tintColor={color} />
+        </View>
+        <View style={styles.glanceBody}>
+          <View style={styles.glanceHead}>
+            <ThemedText type="smallBold" style={styles.glanceTitle}>
+              {title}
+            </ThemedText>
+            {trailing ? (
+              <ThemedText type="label" themeColor="textSecondary">
+                {trailing}
               </ThemedText>
-            </View>
-            <Icon name="chevron.right" size={13} weight="semibold" tintColor={theme.textSecondary} />
-          </Card>
-        </Pressable>
-      </Link>
-    </Animated.View>
+            ) : null}
+            <Icon name="chevron.right" size={12} weight="semibold" tintColor={theme.textTertiary} />
+          </View>
+          <ThemedText type="small" themeColor="textTertiary">
+            {detail}
+          </ThemedText>
+          {visual ? <View style={styles.glanceVisual}>{visual}</View> : null}
+        </View>
+      </View>
+    </Pressable>
   );
 }
 
@@ -445,101 +376,66 @@ const styles = StyleSheet.create({
   },
   hero: {
     gap: Spacing.four,
-    paddingVertical: Spacing.five,
   },
-  heroBody: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.four,
-  },
-  heroCopy: {
-    flex: 1,
-    gap: Spacing.one,
-  },
-  prayerDots: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.two,
-  },
-  prayerDot: {
-    flex: 1,
-    height: 4,
-    borderRadius: 2,
-  },
-  scoreText: {
-    // Stepped down from the display size so the numeral clears the ring
-    // stroke — at full 64px the digits crowd the arc.
-    fontSize: 54,
-    lineHeight: 56,
-    letterSpacing: -2,
-  },
-  statRow: {
-    flexDirection: 'row',
-    gap: Spacing.two,
-  },
-  miniStat: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.one + 2,
-    paddingVertical: Spacing.two + 2,
-    paddingHorizontal: Spacing.two + 2,
-  },
-  miniStatValue: {
-    fontVariant: ['tabular-nums'],
-  },
-  sectionCard: {
-    gap: Spacing.one,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.two,
-    marginBottom: Spacing.one,
-  },
-  sectionTitle: {
-    flex: 1,
-  },
-  workRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginVertical: Spacing.one,
-  },
-  infoCard: {
+  heroTop: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.three,
   },
-  infoText: {
+  heroHeadline: {
     flex: 1,
-    gap: 1,
+    gap: Spacing.one,
   },
-  pressed: {
-    opacity: 0.7,
+  scoreText: {
+    fontSize: 40,
+    lineHeight: 42,
+    letterSpacing: -1.5,
   },
-});
-
-function WorkCount({ value, label }: { value: number; label: string }) {
-  return (
-    <View style={workCountStyles.container}>
-      <ThemedText type="smallBold" style={workCountStyles.value}>
-        {value}
-      </ThemedText>
-      <ThemedText type="small" themeColor="textSecondary">
-        {label}
-      </ThemedText>
-    </View>
-  );
-}
-
-const workCountStyles = StyleSheet.create({
-  container: {
+  breakdown: {
+    gap: Spacing.three,
+  },
+  breakdownWide: {
+    flexDirection: 'row',
+    gap: Spacing.four,
+  },
+  breakdownRow: {
+    flex: 1,
+    gap: Spacing.one + 2,
+  },
+  breakdownHead: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    gap: 1,
   },
-  value: {
-    fontSize: 20,
-    lineHeight: 24,
-    fontVariant: ['tabular-nums'],
+  streakRow: {
+    flexDirection: 'row',
+    gap: Spacing.five,
+  },
+  glance: {
+    flexDirection: 'row',
+    gap: Spacing.three,
+    paddingVertical: Spacing.two + 2,
+  },
+  glanceIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  glanceBody: {
+    flex: 1,
+    gap: 2,
+  },
+  glanceHead: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.two,
+  },
+  glanceTitle: {
+    flex: 1,
+  },
+  glanceVisual: {
+    marginTop: Spacing.two,
   },
 });

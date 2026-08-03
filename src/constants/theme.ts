@@ -114,6 +114,26 @@ export const CornerRadius = {
 } as const;
 
 /**
+ * Domain hues. Each screen owns one, so a glance at a chart or ring says which
+ * part of life it belongs to before any label is read.
+ *
+ * These are held at the same low saturation and lightness as the sage accent
+ * on purpose — they are meant to differentiate meaning, not to decorate. They
+ * tint strokes, rings and small marks; they never fill a large surface, and a
+ * screen shows exactly one of them.
+ */
+export const Domain = {
+  routine: '#A6C1B2', // sage — completion, the base accent
+  prayer: '#A3ADC9', // muted periwinkle
+  work: '#C6AC8B', // muted bronze
+  training: '#B4A7C4', // muted heather
+  sleep: '#93AFC0', // muted slate blue
+} as const;
+
+/** Breakpoint above which layouts may use two columns (iPad and wider). */
+export const WideBreakpoint = 700;
+
+/**
  * Type scale. The single biggest lever on whether the app reads as a premium
  * instrument or a spreadsheet: hero numbers are enormous and tightly tracked,
  * labels are small caps with open tracking, and body sits quietly between
@@ -125,6 +145,8 @@ export const Type = {
   display: { fontSize: 64, lineHeight: 64, fontWeight: '800', letterSpacing: -2.5 },
   /** Secondary hero metric inside a card. */
   metric: { fontSize: 40, lineHeight: 42, fontWeight: '700', letterSpacing: -1.4 },
+  /** Compact metric for dense panels and inline stats. */
+  metricSmall: { fontSize: 26, lineHeight: 30, fontWeight: '700', letterSpacing: -0.8 },
   title: { fontSize: 30, lineHeight: 34, fontWeight: '700', letterSpacing: -0.9 },
   subtitle: { fontSize: 21, lineHeight: 27, fontWeight: '600', letterSpacing: -0.45 },
   body: { fontSize: 16, lineHeight: 23, fontWeight: '400', letterSpacing: -0.1 },
