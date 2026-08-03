@@ -27,9 +27,16 @@ const LifeTheme = {
 
 SplashScreen.preventAutoHideAsync();
 
-// Let TanStack Query pause/resume fetches with real connectivity.
+// Let TanStack Query pause/resume fetches with real connectivity, and replay
+// any mutations that queued while offline (task completions, prayer logs,
+// workout sets, work-event taps — see queryClient.ts) the moment the
+// connection returns, not just on the next foreground.
 onlineManager.setEventListener((setOnline) =>
-  NetInfo.addEventListener((state) => setOnline(!!state.isConnected))
+  NetInfo.addEventListener((state) => {
+    const online = !!state.isConnected;
+    setOnline(online);
+    if (online) queryClient.resumePausedMutations();
+  })
 );
 
 function RootNavigator() {
@@ -60,7 +67,13 @@ export default function RootLayout() {
     <ThemeProvider value={LifeTheme}>
       <PersistQueryClientProvider
         client={queryClient}
-        persistOptions={{ persister: asyncStoragePersister }}>
+        persistOptions={{ persister: asyncStoragePersister }}
+        onSuccess={() => {
+          // Cold-start restore: any mutation that was paused when the app was
+          // last closed is now back in the cache — replay it immediately
+          // rather than waiting for its query to be refetched.
+          queryClient.resumePausedMutations();
+        }}>
         <AuthProvider>
           <RootNavigator />
           <StatusBar style="light" />
