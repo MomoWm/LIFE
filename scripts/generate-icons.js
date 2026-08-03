@@ -23,6 +23,12 @@ const zlib = require('zlib');
 
 const GLOW_COLOR = [255, 255, 255];
 
+// Matches Colors.dark.background in src/constants/theme.ts. A pure-black icon
+// shows as a visible square against the graphite PWA splash, and a glowing
+// mark on pure black is the arcade look the app palette deliberately moved
+// away from.
+const GROUND = [0x10, 0x12, 0x16];
+
 // Vertical metallic gradient for the letterforms. Real polished metal isn't a
 // linear fade — it has a bright specular band where the light source reflects,
 // a darker turn below it, then a bounce-light lift near the base. These stops
@@ -209,7 +215,7 @@ function glow(mask, size) {
   return out;
 }
 
-/** Black ground, blurred white glow halo underneath, metallic letters on top. */
+/** Graphite ground, blurred white glow halo underneath, metallic letters on top. */
 function compositeRgb(size) {
   const letterMask = renderMask(size);
   const glowMask = glow(letterMask, size);
@@ -227,7 +233,7 @@ function compositeRgb(size) {
       const g = glowMask[i] / 255;
       const l = letterMask[i] / 255;
       for (let c = 0; c < 3; c++) {
-        const withGlow = GLOW_COLOR[c] * g; // black background lerped toward white glow
+        const withGlow = GROUND[c] + (GLOW_COLOR[c] - GROUND[c]) * g; // ground -> glow
         const withLetter = withGlow + (metal[c] - withGlow) * l; // metallic letters on top
         rgb[i * 3 + c] = Math.round(Math.max(0, Math.min(255, withLetter)));
       }
