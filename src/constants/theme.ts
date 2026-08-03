@@ -1,26 +1,37 @@
 /**
- * Below are the colors that are used in the app. The colors are defined in the light and dark mode.
- * There are many other ways to style your app. For example, [Nativewind](https://www.nativewind.dev/), [Tamagui](https://tamagui.dev/), [unistyles](https://reactnativeunistyles.vercel.app), etc.
+ * Colors used across the app, mapped to iOS system color roles so light/dark
+ * mode tracks the platform convention. Extend here rather than inlining hex
+ * values in components.
  */
-
-import '@/global.css';
 
 import { Platform } from 'react-native';
 
 export const Colors = {
   light: {
     text: '#000000',
+    textSecondary: '#60646C',
     background: '#ffffff',
     backgroundElement: '#F0F0F3',
     backgroundSelected: '#E0E1E6',
-    textSecondary: '#60646C',
+    groupedBackground: '#F2F2F7',
+    separator: '#E5E5EA',
+    tint: '#007AFF',
+    success: '#34C759',
+    warning: '#FF9500',
+    danger: '#FF3B30',
   },
   dark: {
     text: '#ffffff',
+    textSecondary: '#B0B4BA',
     background: '#000000',
     backgroundElement: '#212225',
     backgroundSelected: '#2E3135',
-    textSecondary: '#B0B4BA',
+    groupedBackground: '#000000',
+    separator: '#38383A',
+    tint: '#0A84FF',
+    success: '#30D158',
+    warning: '#FF9F0A',
+    danger: '#FF453A',
   },
 } as const;
 
@@ -59,6 +70,13 @@ export const Spacing = {
   four: 24,
   five: 32,
   six: 64,
+} as const;
+
+export const CornerRadius = {
+  small: 8,
+  medium: 12,
+  large: 16,
+  xlarge: 20,
 } as const;
 
 export const BottomTabInset = Platform.select({ ios: 50, android: 80 }) ?? 0;
