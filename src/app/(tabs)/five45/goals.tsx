@@ -1,13 +1,15 @@
-import { Stack } from 'expo-router';
+import { Link, Stack } from 'expo-router';
 import { SymbolView } from 'expo-symbols';
 import { useState } from 'react';
-import { StyleSheet, TextInput, View } from 'react-native';
+import { Pressable, StyleSheet, TextInput, View } from 'react-native';
 import { differenceInCalendarDays, parseISO } from 'date-fns';
 
 import { ThemedText } from '@/components/themed-text';
 import { Card } from '@/components/ui/card';
 import { Screen } from '@/components/ui/screen';
 import { CornerRadius, Spacing } from '@/constants/theme';
+import { todayIso } from '@/lib/dates';
+import { isQuarterEndDue } from '@/lib/reviews/cycle';
 import { useActiveGoals, useSaveGoal } from '@/hooks/use-five45';
 import { useTheme } from '@/hooks/use-theme';
 
@@ -33,6 +35,23 @@ export default function GoalsScreen() {
               : 'Set 4 goals for the next 3 months. The cycle starts when you save your first goal.'}
           </ThemedText>
         </View>
+
+        {anchor && isQuarterEndDue(anchor.cycle_end_date, todayIso()) ? (
+          <Link href="/five45/new-cycle" asChild>
+            <Pressable style={({ pressed }) => pressed && styles.pressed}>
+              <Card style={[styles.cycleBanner, { borderColor: theme.tint }]}>
+                <SymbolView name="flag.checkered" size={18} tintColor={theme.tint} />
+                <View style={styles.cycleBannerText}>
+                  <ThemedText type="smallBold">Cycle ending — close the quarter</ThemedText>
+                  <ThemedText type="small" themeColor="textSecondary">
+                    Reflect, archive these goals, and set the next 4.
+                  </ThemedText>
+                </View>
+                <SymbolView name="chevron.right" size={13} weight="semibold" tintColor={theme.textSecondary} />
+              </Card>
+            </Pressable>
+          </Link>
+        ) : null}
 
         {[1, 2, 3, 4].map((slot) => {
           const goal = goals?.find((g) => g.slot === slot);
@@ -114,6 +133,19 @@ const styles = StyleSheet.create({
   },
   headerText: {
     flex: 1,
+  },
+  cycleBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.two,
+    borderWidth: 1,
+  },
+  cycleBannerText: {
+    flex: 1,
+    gap: 1,
+  },
+  pressed: {
+    opacity: 0.7,
   },
   goalCard: {
     gap: Spacing.two,

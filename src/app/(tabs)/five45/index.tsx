@@ -128,6 +128,23 @@ export default function Five45Screen() {
           </SectionCard>
         </Animated.View>
 
+        <Animated.View entering={FadeInDown.duration(350).delay(240)}>
+          <Link href="/five45/review" asChild>
+            <Pressable style={({ pressed }) => pressed && styles.pressed}>
+              <Card style={styles.reviewRow}>
+                <SymbolView name="checkmark.rectangle.stack.fill" size={18} tintColor={theme.tint} />
+                <ThemedText type="smallBold" style={styles.reviewTitle}>
+                  Weekly review
+                </ThemedText>
+                <ThemedText type="small" themeColor="textSecondary">
+                  {new Date().getDay() === 0 ? 'due today' : 'Sundays'}
+                </ThemedText>
+                <SymbolView name="chevron.right" size={13} weight="semibold" tintColor={theme.textSecondary} />
+              </Card>
+            </Pressable>
+          </Link>
+        </Animated.View>
+
         {isPending ? (
           <ThemedText type="small" themeColor="textSecondary" style={styles.loading}>
             Loading today…
@@ -213,6 +230,14 @@ const styles = StyleSheet.create({
   },
   pressed: {
     opacity: 0.8,
+  },
+  reviewRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.two,
+  },
+  reviewTitle: {
+    flex: 1,
   },
   loading: {
     textAlign: 'center',
