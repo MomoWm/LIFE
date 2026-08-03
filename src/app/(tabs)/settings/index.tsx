@@ -1,6 +1,6 @@
 import { Stack, router } from 'expo-router';
 import { Icon } from '@/components/ui/icon';
-import { StyleSheet } from 'react-native';
+import { Alert, StyleSheet } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { Button } from '@/components/ui/button';
@@ -15,6 +15,22 @@ import { signOut } from '@/lib/supabase/auth';
 export default function SettingsScreen() {
   const theme = useTheme();
   const { session } = useAuth();
+  const isAnonymous = session?.user.is_anonymous ?? false;
+
+  const handleSignOut = () => {
+    if (!isAnonymous) {
+      signOut();
+      return;
+    }
+    Alert.alert(
+      'Sign out?',
+      'This account has no email attached — signing out means there is no way back into it. Your data stays saved, but this device won’t be able to reach it again.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Sign out', style: 'destructive', onPress: () => signOut() },
+      ]
+    );
+  };
 
   return (
     <>
@@ -22,9 +38,11 @@ export default function SettingsScreen() {
       <Screen>
         <Card style={styles.card}>
           <ThemedText type="small" themeColor="textSecondary">
-            Signed in as
+            {isAnonymous ? 'Using LIFE on this device' : 'Signed in as'}
           </ThemedText>
-          <ThemedText type="smallBold">{session?.user.email}</ThemedText>
+          <ThemedText type="smallBold">
+            {isAnonymous ? 'No email — data lives with this browser session' : session?.user.email}
+          </ThemedText>
         </Card>
 
         <Card style={styles.card}>
@@ -44,7 +62,7 @@ export default function SettingsScreen() {
           />
         </Card>
 
-        <Button title="Sign out" variant="destructive" onPress={() => signOut()} />
+        <Button title="Sign out" variant="destructive" onPress={handleSignOut} />
 
         <ThemedText type="small" themeColor="textSecondary" style={styles.footer}>
           LIFE · your 545, prayers, training, and knocking hours in one place.

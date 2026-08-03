@@ -1,5 +1,10 @@
 import { supabase } from '@/lib/supabase/client';
 
+export async function continueAnonymously() {
+  const { error } = await supabase.auth.signInAnonymously();
+  if (error) throw error;
+}
+
 export async function sendSignInCode(email: string) {
   const { error } = await supabase.auth.signInWithOtp({
     email,
