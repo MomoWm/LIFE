@@ -99,7 +99,7 @@ export default function PrayerSettingsScreen() {
                   ]}>
                   <ThemedText
                     type="small"
-                    style={{ color: selected ? '#fff' : theme.textSecondary }}>
+                    style={{ color: selected ? theme.onTint : theme.textSecondary }}>
                     {METHOD_LABELS[method] ?? method}
                   </ThemedText>
                 </Pressable>
@@ -123,7 +123,7 @@ export default function PrayerSettingsScreen() {
                   ]}>
                   <ThemedText
                     type="small"
-                    style={{ color: selected ? '#fff' : theme.textSecondary }}>
+                    style={{ color: selected ? theme.onTint : theme.textSecondary }}>
                     {madhab === 'shafi' ? 'Shafi (earlier Asr)' : 'Hanafi (later Asr)'}
                   </ThemedText>
                 </Pressable>

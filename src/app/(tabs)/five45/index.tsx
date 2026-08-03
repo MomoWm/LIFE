@@ -54,7 +54,7 @@ export default function Five45Screen() {
                 {today ? DAY_TYPE_LABELS[today.dayType].split(' (')[0] : ' '}
               </ThemedText>
               <View style={styles.streakRow}>
-                <Icon name="flame.fill" size={16} tintColor={theme.warning} />
+                <Icon name="flame.fill" size={16} tintColor={theme.textSecondary} />
                 <ThemedText type="small" themeColor="textSecondary">
                   {streak ?? 0} day streak
                 </ThemedText>
@@ -67,7 +67,7 @@ export default function Five45Screen() {
           <SectionCard
             title="Morning 5"
             symbol="sunrise.fill"
-            symbolColor={theme.warning}
+            symbolColor={theme.textSecondary}
             emptyHint="Set your 5 wake-up tasks in the template editor (top right).">
             {wakeTasks.map((task) => (
               <CheckboxRow
@@ -110,7 +110,7 @@ export default function Five45Screen() {
           <SectionCard
             title="Non-negotiables"
             symbol="moon.stars.fill"
-            symbolColor="#7B68EE"
+            symbolColor={theme.textSecondary}
             emptyHint="Set your 5 before-sleep non-negotiables in the template editor.">
             {eodTasks.map((task) => (
               <CheckboxRow

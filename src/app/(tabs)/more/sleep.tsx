@@ -86,7 +86,7 @@ export default function SleepScreen() {
             label="14-day avg"
             value={loggedNights > 0 ? formatDuration(avgMinutes) : '—'}
             symbol="chart.bar.fill"
-            symbolColor={theme.success}
+            symbolColor={theme.textSecondary}
           />
         </Animated.View>
 
@@ -126,7 +126,7 @@ export default function SleepScreen() {
                   <Icon
                     name={quality != null && star <= quality ? 'star.fill' : 'star'}
                     size={22}
-                    tintColor={quality != null && star <= quality ? theme.warning : theme.textSecondary}
+                    tintColor={quality != null && star <= quality ? theme.tint : theme.textSecondary}
                   />
                 </Pressable>
               ))}

@@ -65,7 +65,7 @@ export default function WeeklyReviewScreen() {
                     <Icon
                       name={current != null && star <= current ? 'star.fill' : 'star'}
                       size={24}
-                      tintColor={current != null && star <= current ? theme.warning : theme.textSecondary}
+                      tintColor={current != null && star <= current ? theme.tint : theme.textSecondary}
                     />
                   </Pressable>
                 );

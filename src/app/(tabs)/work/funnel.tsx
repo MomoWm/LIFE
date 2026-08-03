@@ -33,10 +33,10 @@ export default function FunnelScreen() {
   });
 
   const stages = [
-    { label: 'Doors', value: counts.door, color: theme.tint, rate: null as string | null },
-    { label: 'Interactions', value: counts.interaction, color: theme.success, rate: formatRate(rates.interactionRate) },
-    { label: 'Pitches', value: counts.pitch, color: theme.warning, rate: formatRate(rates.pitchRate) },
-    { label: 'Appointments', value: counts.appointment, color: '#7B68EE', rate: formatRate(rates.appointmentRate) },
+    { label: 'Doors', value: counts.door, rate: null as string | null },
+    { label: 'Interactions', value: counts.interaction, rate: formatRate(rates.interactionRate) },
+    { label: 'Pitches', value: counts.pitch, rate: formatRate(rates.pitchRate) },
+    { label: 'Appointments', value: counts.appointment, rate: formatRate(rates.appointmentRate) },
   ];
   const max = Math.max(1, ...stages.map((s) => s.value));
 
@@ -57,7 +57,7 @@ export default function FunnelScreen() {
                 ]}>
                 <ThemedText
                   type="smallBold"
-                  style={{ color: selected ? '#fff' : theme.textSecondary }}>
+                  style={{ color: selected ? theme.onTint : theme.textSecondary }}>
                   {window.label}
                 </ThemedText>
               </Pressable>
@@ -87,7 +87,7 @@ export default function FunnelScreen() {
                     style={[
                       styles.barFill,
                       {
-                        backgroundColor: stage.color,
+                        backgroundColor: theme.tint,
                         width: `${Math.max(2, (stage.value / max) * 100)}%`,
                       },
                     ]}

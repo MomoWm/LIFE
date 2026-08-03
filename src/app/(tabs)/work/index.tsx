@@ -62,10 +62,10 @@ export default function WorkScreen() {
     color: string;
     target: number | null;
   }[] = [
-    { type: 'door', label: 'Doors', symbol: 'door.left.hand.open', color: theme.tint, target: targets?.doors_target ?? null },
-    { type: 'interaction', label: 'Interactions', symbol: 'person.2.fill', color: theme.success, target: targets?.interactions_target ?? 20 },
-    { type: 'pitch', label: 'Pitches', symbol: 'megaphone.fill', color: theme.warning, target: targets?.pitches_target ?? 8 },
-    { type: 'appointment', label: 'Appointments', symbol: 'calendar.badge.plus', color: '#7B68EE', target: targets?.appointments_target ?? null },
+    { type: 'door', label: 'Doors', symbol: 'door.left.hand.open', color: theme.textSecondary, target: targets?.doors_target ?? null },
+    { type: 'interaction', label: 'Interactions', symbol: 'person.2.fill', color: theme.textSecondary, target: targets?.interactions_target ?? 20 },
+    { type: 'pitch', label: 'Pitches', symbol: 'megaphone.fill', color: theme.textSecondary, target: targets?.pitches_target ?? 8 },
+    { type: 'appointment', label: 'Appointments', symbol: 'calendar.badge.plus', color: theme.textSecondary, target: targets?.appointments_target ?? null },
   ];
 
   return (
@@ -237,7 +237,7 @@ function CounterCard({
                 style={[
                   styles.progressFill,
                   {
-                    backgroundColor: hitTarget ? theme.success : color,
+                    backgroundColor: hitTarget ? theme.success : theme.tint,
                     width: `${Math.min(100, (count / target) * 100)}%`,
                   },
                 ]}

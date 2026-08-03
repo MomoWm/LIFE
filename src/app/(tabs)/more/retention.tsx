@@ -47,7 +47,7 @@ export default function RetentionScreen() {
         {stats?.currentStreakDays === null ? (
           <Animated.View entering={FadeInDown.duration(300)}>
             <Card style={styles.startCard}>
-              <Icon name="bolt.shield.fill" size={32} tintColor={theme.warning} />
+              <Icon name="bolt.shield.fill" size={32} tintColor={theme.tint} />
               <ThemedText type="subtitle" style={styles.startTitle}>
                 Start your streak
               </ThemedText>
@@ -82,7 +82,7 @@ export default function RetentionScreen() {
                 value={String(stats?.bestStreakDays ?? 0)}
                 unit="days"
                 symbol="trophy.fill"
-                symbolColor={theme.warning}
+                symbolColor={theme.textSecondary}
               />
               <StatCard
                 label="Resets"

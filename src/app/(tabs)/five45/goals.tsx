@@ -95,7 +95,7 @@ function GoalSlot({
     <Card style={styles.goalCard}>
       <View style={styles.slotRow}>
         <View style={[styles.slotBadge, { backgroundColor: theme.tint }]}>
-          <ThemedText type="smallBold" style={styles.slotNumber}>
+          <ThemedText type="smallBold" style={[styles.slotNumber, { color: theme.onTint }]}>
             {slot}
           </ThemedText>
         </View>
@@ -163,7 +163,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   slotNumber: {
-    color: '#fff',
   },
   titleInput: {
     flex: 1,

@@ -44,7 +44,7 @@ export default function TemplatesScreen() {
                 ]}>
                 <ThemedText
                   type="smallBold"
-                  style={{ color: selected ? '#fff' : theme.textSecondary }}>
+                  style={{ color: selected ? theme.onTint : theme.textSecondary }}>
                   {CHIP_LABELS[type]}
                 </ThemedText>
               </Pressable>

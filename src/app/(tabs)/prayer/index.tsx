@@ -98,7 +98,7 @@ export default function PrayerScreen() {
             value={String(streak ?? 0)}
             unit="days"
             symbol="flame.fill"
-            symbolColor={theme.warning}
+            symbolColor={theme.textSecondary}
           />
           <StatCard
             label="Qada owed"
@@ -206,7 +206,7 @@ function PrayerRow({
           styles.statusButton,
           { backgroundColor: selected ? color : theme.backgroundSelected },
         ]}>
-        <Icon name={symbol} size={16} tintColor={selected ? '#fff' : theme.textSecondary} />
+        <Icon name={symbol} size={16} tintColor={selected ? theme.onTint : theme.textSecondary} />
       </Pressable>
     );
   };
@@ -218,7 +218,7 @@ function PrayerRow({
           <ThemedText type="smallBold">{PRAYER_LABELS[prayer]}</ThemedText>
           {isNext ? (
             <View style={[styles.nextBadge, { backgroundColor: theme.tint }]}>
-              <ThemedText style={styles.nextBadgeText}>NEXT</ThemedText>
+              <ThemedText style={[styles.nextBadgeText, { color: theme.onTint }]}>NEXT</ThemedText>
             </View>
           ) : null}
         </View>
@@ -277,7 +277,6 @@ const styles = StyleSheet.create({
     borderRadius: 5,
   },
   nextBadgeText: {
-    color: '#fff',
     fontSize: 10,
     fontWeight: '700',
   },

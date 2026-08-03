@@ -52,7 +52,7 @@ export default function WorkoutScreen() {
         {cycleDay === null ? (
           <Animated.View entering={FadeInDown.duration(300)}>
             <Card style={styles.setupCard}>
-              <Icon name="dumbbell.fill" size={30} tintColor={theme.success} />
+              <Icon name="dumbbell.fill" size={30} tintColor={theme.tint} />
               <ThemedText type="subtitle" style={styles.setupTitle}>
                 Start your 8-day cycle
               </ThemedText>
@@ -85,8 +85,8 @@ export default function WorkoutScreen() {
             <Animated.View entering={FadeInDown.duration(300)}>
               <Card style={styles.todayCard}>
                 <View style={styles.todayHeader}>
-                  <View style={[styles.dayBadge, { backgroundColor: split?.isRest ? theme.backgroundSelected : theme.success }]}>
-                    <ThemedText type="smallBold" style={{ color: split?.isRest ? theme.textSecondary : '#fff' }}>
+                  <View style={[styles.dayBadge, { backgroundColor: split?.isRest ? theme.backgroundSelected : theme.tint }]}>
+                    <ThemedText type="smallBold" style={{ color: split?.isRest ? theme.textSecondary : theme.onTint }}>
                       Day {cycleDay}
                     </ThemedText>
                   </View>
@@ -268,7 +268,7 @@ function ExerciseCard({ entry }: { entry: SessionEntry }) {
             { backgroundColor: theme.tint },
             pressed && styles.pressed,
           ]}>
-          <Icon name="plus" size={16} tintColor="#fff" />
+          <Icon name="plus" size={16} tintColor={theme.onTint} />
         </Pressable>
       </View>
     </Card>
