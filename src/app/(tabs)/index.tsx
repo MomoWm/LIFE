@@ -1,6 +1,6 @@
 import { format } from 'date-fns';
 import { Link, type Href } from 'expo-router';
-import { SymbolView } from 'expo-symbols';
+import { Icon, type IconName } from '@/components/ui/icon';
 import { Pressable, StyleSheet, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -286,14 +286,14 @@ function MiniStat({
   value,
   label,
 }: {
-  symbol: Parameters<typeof SymbolView>[0]['name'];
+  symbol: IconName;
   color: string;
   value: number;
   label: string;
 }) {
   return (
     <Card style={styles.miniStat}>
-      <SymbolView name={symbol} size={14} tintColor={color} />
+      <Icon name={symbol} size={14} tintColor={color} />
       <ThemedText type="smallBold" style={styles.miniStatValue}>
         {value}
       </ThemedText>
@@ -313,7 +313,7 @@ function DashboardSection({
   children,
 }: {
   title: string;
-  symbol: Parameters<typeof SymbolView>[0]['name'];
+  symbol: IconName;
   symbolColor: string;
   href: Href;
   delay: number;
@@ -325,11 +325,11 @@ function DashboardSection({
       <Card style={styles.sectionCard}>
         <Link href={href} asChild>
           <Pressable style={({ pressed }) => [styles.sectionHeader, pressed && styles.pressed]}>
-            <SymbolView name={symbol} size={17} tintColor={symbolColor} />
+            <Icon name={symbol} size={17} tintColor={symbolColor} />
             <ThemedText type="smallBold" style={styles.sectionTitle}>
               {title}
             </ThemedText>
-            <SymbolView name="chevron.right" size={13} weight="semibold" tintColor={theme.textSecondary} />
+            <Icon name="chevron.right" size={13} weight="semibold" tintColor={theme.textSecondary} />
           </Pressable>
         </Link>
         {children}
@@ -346,7 +346,7 @@ function InfoCard({
   href,
   delay,
 }: {
-  symbol: Parameters<typeof SymbolView>[0]['name'];
+  symbol: IconName;
   color: string;
   title: string;
   subtitle: string;
@@ -359,14 +359,14 @@ function InfoCard({
       <Link href={href} asChild>
         <Pressable style={({ pressed }) => pressed && styles.pressed}>
           <Card style={styles.infoCard}>
-            <SymbolView name={symbol} size={20} tintColor={color} />
+            <Icon name={symbol} size={20} tintColor={color} />
             <View style={styles.infoText}>
               <ThemedText type="smallBold">{title}</ThemedText>
               <ThemedText type="small" themeColor="textSecondary">
                 {subtitle}
               </ThemedText>
             </View>
-            <SymbolView name="chevron.right" size={13} weight="semibold" tintColor={theme.textSecondary} />
+            <Icon name="chevron.right" size={13} weight="semibold" tintColor={theme.textSecondary} />
           </Card>
         </Pressable>
       </Link>

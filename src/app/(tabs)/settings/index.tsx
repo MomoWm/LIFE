@@ -1,5 +1,5 @@
 import { Stack, router } from 'expo-router';
-import { SymbolView } from 'expo-symbols';
+import { Icon } from '@/components/ui/icon';
 import { StyleSheet } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
@@ -31,14 +31,14 @@ export default function SettingsScreen() {
           <ListRow
             title="Notifications"
             subtitle="Prayer times, morning nudge, weekly review"
-            leading={<SymbolView name="bell.badge.fill" size={20} tintColor={theme.danger} />}
+            leading={<Icon name="bell.badge.fill" size={20} tintColor={theme.danger} />}
             showChevron
             onPress={() => router.push('/settings/notifications')}
           />
           <ListRow
             title="Prayer settings"
             subtitle="Location, calculation method, madhab"
-            leading={<SymbolView name="moon.stars.fill" size={20} tintColor="#7B68EE" />}
+            leading={<Icon name="moon.stars.fill" size={20} tintColor="#7B68EE" />}
             showChevron
             onPress={() => router.push('/settings/prayer')}
           />

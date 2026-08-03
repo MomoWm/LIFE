@@ -1,6 +1,6 @@
 import * as Location from 'expo-location';
 import { Stack } from 'expo-router';
-import { SymbolView } from 'expo-symbols';
+import { Icon } from '@/components/ui/icon';
 import { useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
@@ -64,7 +64,7 @@ export default function PrayerSettingsScreen() {
       <Screen>
         <Card style={styles.card}>
           <View style={styles.locationRow}>
-            <SymbolView name="location.fill" size={18} tintColor={theme.tint} />
+            <Icon name="location.fill" size={18} tintColor={theme.tint} />
             <View style={styles.locationText}>
               <ThemedText type="smallBold">
                 {profile?.location_label ?? 'Location not set'}

@@ -1,8 +1,7 @@
-import DateTimePicker from '@react-native-community/datetimepicker';
 import { addDays, format, parseISO } from 'date-fns';
-import * as Haptics from 'expo-haptics';
+import * as Haptics from '@/lib/haptics';
 import { Stack } from 'expo-router';
-import { SymbolView } from 'expo-symbols';
+import { Icon } from '@/components/ui/icon';
 import { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
@@ -13,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Screen } from '@/components/ui/screen';
 import { StatCard } from '@/components/ui/stat-card';
+import { TimeField } from '@/components/ui/time-field';
 import { Spacing } from '@/constants/theme';
 import { todayIso } from '@/lib/dates';
 import { formatDuration, sleepDurationMinutes } from '@/lib/sleep/sleep';
@@ -101,23 +101,13 @@ export default function SleepScreen() {
                 <ThemedText type="small" themeColor="textSecondary">
                   Bed time
                 </ThemedText>
-                <DateTimePicker
-                  value={bedTime}
-                  mode="time"
-                  display="compact"
-                  onChange={(_event, date) => date && setBedTime(date)}
-                />
+                <TimeField value={bedTime} onChange={setBedTime} />
               </View>
               <View style={styles.pickerColumn}>
                 <ThemedText type="small" themeColor="textSecondary">
                   Wake time
                 </ThemedText>
-                <DateTimePicker
-                  value={wakeTime}
-                  mode="time"
-                  display="compact"
-                  onChange={(_event, date) => date && setWakeTime(date)}
-                />
+                <TimeField value={wakeTime} onChange={setWakeTime} />
               </View>
             </View>
 
@@ -133,7 +123,7 @@ export default function SleepScreen() {
                     setQuality(star === quality ? null : star);
                   }}
                   hitSlop={4}>
-                  <SymbolView
+                  <Icon
                     name={quality != null && star <= quality ? 'star.fill' : 'star'}
                     size={22}
                     tintColor={quality != null && star <= quality ? theme.warning : theme.textSecondary}

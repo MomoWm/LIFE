@@ -1,4 +1,4 @@
-import { SymbolView } from 'expo-symbols';
+import { Icon, type IconName } from '@/components/ui/icon';
 import type { ReactNode } from 'react';
 import { StyleSheet, View } from 'react-native';
 
@@ -10,7 +10,7 @@ type StatCardProps = {
   label: string;
   value: string;
   unit?: string;
-  symbol: Parameters<typeof SymbolView>[0]['name'];
+  symbol: IconName;
   symbolColor: string;
   footer?: ReactNode;
 };
@@ -19,7 +19,7 @@ export function StatCard({ label, value, unit, symbol, symbolColor, footer }: St
   return (
     <Card style={styles.card}>
       <View style={styles.labelRow}>
-        <SymbolView name={symbol} size={15} tintColor={symbolColor} />
+        <Icon name={symbol} size={15} tintColor={symbolColor} />
         <ThemedText type="small" themeColor="textSecondary">
           {label}
         </ThemedText>

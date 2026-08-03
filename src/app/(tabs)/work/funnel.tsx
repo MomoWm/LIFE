@@ -1,5 +1,5 @@
 import { Stack } from 'expo-router';
-import { SymbolView } from 'expo-symbols';
+import { Icon } from '@/components/ui/icon';
 import { useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
@@ -97,7 +97,7 @@ export default function FunnelScreen() {
             ))}
 
             <View style={[styles.overallRow, { borderTopColor: theme.separator }]}>
-              <SymbolView name="arrow.down.right.circle.fill" size={16} tintColor={theme.tint} />
+              <Icon name="arrow.down.right.circle.fill" size={16} tintColor={theme.tint} />
               <ThemedText type="small" themeColor="textSecondary" style={styles.overallText}>
                 Overall: {formatRate(rates.overallRate)} of doors become appointments
                 {data ? ` · ${data.activeDayCount} active day${data.activeDayCount === 1 ? '' : 's'}` : ''}

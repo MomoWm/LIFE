@@ -1,5 +1,5 @@
-import * as Haptics from 'expo-haptics';
-import { SymbolView } from 'expo-symbols';
+import * as Haptics from '@/lib/haptics';
+import { Icon } from '@/components/ui/icon';
 import { useEffect } from 'react';
 import { Pressable, StyleSheet } from 'react-native';
 import Animated, {
@@ -52,7 +52,7 @@ export function CheckboxRow({ title, checked, onToggle, disabled }: CheckboxRowP
       disabled={disabled}
       style={({ pressed }) => [styles.row, pressed && styles.pressed]}>
       <Animated.View style={circleStyle}>
-        <SymbolView
+        <Icon
           name={checked ? 'checkmark.circle.fill' : 'circle'}
           size={26}
           tintColor={checked ? theme.success : theme.textSecondary}

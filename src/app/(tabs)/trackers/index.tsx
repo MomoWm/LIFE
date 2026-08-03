@@ -1,5 +1,5 @@
 import { Link, Stack, type Href } from 'expo-router';
-import { SymbolView } from 'expo-symbols';
+import { Icon, type IconName } from '@/components/ui/icon';
 import { Pressable, StyleSheet, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 
@@ -13,7 +13,7 @@ type TrackerLink = {
   href: Href;
   title: string;
   subtitle: string;
-  symbol: Parameters<typeof SymbolView>[0]['name'];
+  symbol: IconName;
   color: string;
 };
 
@@ -61,7 +61,7 @@ export default function TrackersScreen() {
               <Pressable style={({ pressed }) => pressed && styles.pressed}>
                 <Card style={styles.row}>
                   <View style={[styles.iconBadge, { backgroundColor: tracker.color }]}>
-                    <SymbolView name={tracker.symbol} size={20} tintColor="#fff" />
+                    <Icon name={tracker.symbol} size={20} tintColor="#fff" />
                   </View>
                   <View style={styles.textColumn}>
                     <ThemedText type="smallBold">{tracker.title}</ThemedText>
@@ -69,7 +69,7 @@ export default function TrackersScreen() {
                       {tracker.subtitle}
                     </ThemedText>
                   </View>
-                  <SymbolView name="chevron.right" size={14} weight="semibold" tintColor={theme.textSecondary} />
+                  <Icon name="chevron.right" size={14} weight="semibold" tintColor={theme.textSecondary} />
                 </Card>
               </Pressable>
             </Link>

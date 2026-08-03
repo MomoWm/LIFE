@@ -1,4 +1,4 @@
-import { SymbolView } from 'expo-symbols';
+import { Icon } from '@/components/ui/icon';
 import type { ReactNode } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
@@ -39,7 +39,7 @@ export function ListRow({
       </View>
       {trailing}
       {showChevron ? (
-        <SymbolView name="chevron.right" size={14} weight="semibold" tintColor={theme.textSecondary} />
+        <Icon name="chevron.right" size={14} weight="semibold" tintColor={theme.textSecondary} />
       ) : null}
     </View>
   );

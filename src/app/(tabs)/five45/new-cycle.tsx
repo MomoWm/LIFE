@@ -1,7 +1,7 @@
 import { format, parseISO } from 'date-fns';
-import * as Haptics from 'expo-haptics';
+import * as Haptics from '@/lib/haptics';
 import { Stack, router } from 'expo-router';
-import { SymbolView } from 'expo-symbols';
+import { Icon } from '@/components/ui/icon';
 import { useState } from 'react';
 import { StyleSheet, TextInput, View } from 'react-native';
 
@@ -29,7 +29,7 @@ export default function NewCycleScreen() {
         {anchor ? (
           <>
             <View style={styles.headerRow}>
-              <SymbolView name="flag.checkered" size={20} tintColor={theme.tint} />
+              <Icon name="flag.checkered" size={20} tintColor={theme.tint} />
               <ThemedText type="small" themeColor="textSecondary" style={styles.headerText}>
                 Cycle {format(parseISO(anchor.cycle_start_date), 'MMM d')} –{' '}
                 {format(parseISO(anchor.cycle_end_date), 'MMM d')}. Closing archives these 4 goals

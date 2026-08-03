@@ -1,5 +1,5 @@
 import { Link, Stack } from 'expo-router';
-import { SymbolView } from 'expo-symbols';
+import { Icon } from '@/components/ui/icon';
 import { useState } from 'react';
 import { Pressable, StyleSheet, TextInput, View } from 'react-native';
 import { differenceInCalendarDays, parseISO } from 'date-fns';
@@ -28,7 +28,7 @@ export default function GoalsScreen() {
       <Stack.Screen options={{ title: '4 Goals', headerLargeTitle: false }} />
       <Screen>
         <View style={styles.headerRow}>
-          <SymbolView name="target" size={20} tintColor={theme.tint} />
+          <Icon name="target" size={20} tintColor={theme.tint} />
           <ThemedText type="small" themeColor="textSecondary" style={styles.headerText}>
             {daysLeft !== null
               ? `${daysLeft} days left in this 3-month cycle. These 4 goals show up on every day's 545.`
@@ -40,14 +40,14 @@ export default function GoalsScreen() {
           <Link href="/five45/new-cycle" asChild>
             <Pressable style={({ pressed }) => pressed && styles.pressed}>
               <Card style={[styles.cycleBanner, { borderColor: theme.tint }]}>
-                <SymbolView name="flag.checkered" size={18} tintColor={theme.tint} />
+                <Icon name="flag.checkered" size={18} tintColor={theme.tint} />
                 <View style={styles.cycleBannerText}>
                   <ThemedText type="smallBold">Cycle ending — close the quarter</ThemedText>
                   <ThemedText type="small" themeColor="textSecondary">
                     Reflect, archive these goals, and set the next 4.
                   </ThemedText>
                 </View>
-                <SymbolView name="chevron.right" size={13} weight="semibold" tintColor={theme.textSecondary} />
+                <Icon name="chevron.right" size={13} weight="semibold" tintColor={theme.textSecondary} />
               </Card>
             </Pressable>
           </Link>

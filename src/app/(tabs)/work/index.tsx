@@ -1,6 +1,6 @@
-import * as Haptics from 'expo-haptics';
+import * as Haptics from '@/lib/haptics';
 import { Link, Stack } from 'expo-router';
-import { SymbolView } from 'expo-symbols';
+import { Icon, type IconName } from '@/components/ui/icon';
 import { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import Animated, {
@@ -58,7 +58,7 @@ export default function WorkScreen() {
   const counters: {
     type: WorkEventType;
     label: string;
-    symbol: Parameters<typeof SymbolView>[0]['name'];
+    symbol: IconName;
     color: string;
     target: number | null;
   }[] = [
@@ -76,7 +76,7 @@ export default function WorkScreen() {
           headerRight: () => (
             <Link href="/work/funnel" asChild>
               <Pressable hitSlop={8}>
-                <SymbolView name="chart.bar.fill" size={20} tintColor={theme.tint} />
+                <Icon name="chart.bar.fill" size={20} tintColor={theme.tint} />
               </Pressable>
             </Link>
           ),
@@ -194,7 +194,7 @@ function CounterCard({
   onTap,
 }: {
   label: string;
-  symbol: Parameters<typeof SymbolView>[0]['name'];
+  symbol: IconName;
   color: string;
   count: number;
   target: number | null;
@@ -221,9 +221,9 @@ function CounterCard({
       <Animated.View style={animatedStyle}>
         <Card style={styles.counterCard}>
           <View style={styles.counterHeader}>
-            <SymbolView name={symbol} size={16} tintColor={color} />
+            <Icon name={symbol} size={16} tintColor={color} />
             {hitTarget ? (
-              <SymbolView name="checkmark.seal.fill" size={14} tintColor={theme.success} />
+              <Icon name="checkmark.seal.fill" size={14} tintColor={theme.success} />
             ) : null}
           </View>
           <ThemedText style={styles.counterValue}>{count}</ThemedText>

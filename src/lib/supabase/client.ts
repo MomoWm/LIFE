@@ -1,6 +1,7 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createClient } from '@supabase/supabase-js';
-import { AppState } from 'react-native';
+import { AppState, Platform } from 'react-native';
+
+import { safeStorage } from '@/lib/storage';
 
 import type { Database } from './types';
 
@@ -15,7 +16,7 @@ export const supabase = createClient<Database>(
   supabaseAnonKey || 'placeholder-anon-key',
   {
     auth: {
-      storage: AsyncStorage,
+      storage: safeStorage,
       autoRefreshToken: true,
       persistSession: true,
       detectSessionInUrl: false,
@@ -25,10 +26,13 @@ export const supabase = createClient<Database>(
 
 // Supabase's token auto-refresh timer only runs while this is called; pause it
 // in the background so we're not refreshing tokens for a backgrounded app.
-AppState.addEventListener('change', (state) => {
-  if (state === 'active') {
-    supabase.auth.startAutoRefresh();
-  } else {
-    supabase.auth.stopAutoRefresh();
-  }
-});
+// Guarded so the Node-side static web prerender never touches AppState.
+if (Platform.OS !== 'web' || typeof window !== 'undefined') {
+  AppState.addEventListener('change', (state) => {
+    if (state === 'active') {
+      supabase.auth.startAutoRefresh();
+    } else {
+      supabase.auth.stopAutoRefresh();
+    }
+  });
+}

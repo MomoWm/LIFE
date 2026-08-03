@@ -1,10 +1,10 @@
-import DateTimePicker from '@react-native-community/datetimepicker';
 import { Stack } from 'expo-router';
-import { StyleSheet, Switch, View } from 'react-native';
+import { Platform, StyleSheet, Switch, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { Card } from '@/components/ui/card';
 import { Screen } from '@/components/ui/screen';
+import { TimeField } from '@/components/ui/time-field';
 import { Spacing } from '@/constants/theme';
 import { useNotificationPrefs, useUpdateNotificationPrefs } from '@/hooks/use-notifications';
 
@@ -43,17 +43,13 @@ export default function NotificationSettingsScreen() {
               <ThemedText type="small" themeColor="textSecondary">
                 Nudge time
               </ThemedText>
-              <DateTimePicker
+              <TimeField
                 value={morningTime}
-                mode="time"
-                display="compact"
-                onChange={(_event, date) => {
-                  if (date) {
-                    const time = `${String(date.getHours()).padStart(2, '0')}:${String(
-                      date.getMinutes()
-                    ).padStart(2, '0')}:00`;
-                    update.mutate({ five45_morning_time: time });
-                  }
+                onChange={(date) => {
+                  const time = `${String(date.getHours()).padStart(2, '0')}:${String(
+                    date.getMinutes()
+                  ).padStart(2, '0')}:00`;
+                  update.mutate({ five45_morning_time: time });
                 }}
               />
             </View>
@@ -67,8 +63,9 @@ export default function NotificationSettingsScreen() {
         </Card>
 
         <ThemedText type="small" themeColor="textSecondary" style={styles.note}>
-          Notifications are scheduled on this device each time you open the app — no data leaves
-          your phone.
+          {Platform.OS === 'web'
+            ? 'Reminders don’t fire from the web version — these settings apply when the app runs on your phone natively.'
+            : 'Notifications are scheduled on this device each time you open the app — no data leaves your phone.'}
         </ThemedText>
       </Screen>
     </>

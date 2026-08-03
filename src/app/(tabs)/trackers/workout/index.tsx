@@ -1,7 +1,7 @@
 import { addDays, format } from 'date-fns';
-import * as Haptics from 'expo-haptics';
+import * as Haptics from '@/lib/haptics';
 import { Link, Stack } from 'expo-router';
-import { SymbolView } from 'expo-symbols';
+import { Icon } from '@/components/ui/icon';
 import { useState } from 'react';
 import { Pressable, StyleSheet, TextInput, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
@@ -42,7 +42,7 @@ export default function WorkoutScreen() {
           headerRight: () => (
             <Link href="/trackers/workout/history" asChild>
               <Pressable hitSlop={8}>
-                <SymbolView name="clock.arrow.circlepath" size={20} tintColor={theme.tint} />
+                <Icon name="clock.arrow.circlepath" size={20} tintColor={theme.tint} />
               </Pressable>
             </Link>
           ),
@@ -52,7 +52,7 @@ export default function WorkoutScreen() {
         {cycleDay === null ? (
           <Animated.View entering={FadeInDown.duration(300)}>
             <Card style={styles.setupCard}>
-              <SymbolView name="dumbbell.fill" size={30} tintColor={theme.success} />
+              <Icon name="dumbbell.fill" size={30} tintColor={theme.success} />
               <ThemedText type="subtitle" style={styles.setupTitle}>
                 Start your 8-day cycle
               </ThemedText>
@@ -154,7 +154,7 @@ function ActiveSession({
         <Pressable
           onPress={() => setPickerOpen((open) => !open)}
           style={({ pressed }) => [styles.addRow, pressed && styles.pressed]}>
-          <SymbolView name={pickerOpen ? 'chevron.down' : 'plus.circle.fill'} size={20} tintColor={theme.tint} />
+          <Icon name={pickerOpen ? 'chevron.down' : 'plus.circle.fill'} size={20} tintColor={theme.tint} />
           <ThemedText type="smallBold" style={{ color: theme.tint }}>
             Add exercise
           </ThemedText>
@@ -216,7 +216,7 @@ function ExerciseCard({ entry }: { entry: SessionEntry }) {
       <Link href={{ pathname: '/trackers/workout/exercise/[id]', params: { id: entry.exercise.id } }} asChild>
         <Pressable style={({ pressed }) => [styles.exerciseHeader, pressed && styles.pressed]}>
           <ThemedText type="smallBold">{entry.exercise.name}</ThemedText>
-          <SymbolView name="chart.xyaxis.line" size={16} tintColor={theme.tint} />
+          <Icon name="chart.xyaxis.line" size={16} tintColor={theme.tint} />
         </Pressable>
       </Link>
 
@@ -268,7 +268,7 @@ function ExerciseCard({ entry }: { entry: SessionEntry }) {
             { backgroundColor: theme.tint },
             pressed && styles.pressed,
           ]}>
-          <SymbolView name="plus" size={16} tintColor="#fff" />
+          <Icon name="plus" size={16} tintColor="#fff" />
         </Pressable>
       </View>
     </Card>

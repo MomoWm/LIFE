@@ -1,7 +1,7 @@
 import { format } from 'date-fns';
-import * as Haptics from 'expo-haptics';
+import * as Haptics from '@/lib/haptics';
 import { Stack } from 'expo-router';
-import { SymbolView } from 'expo-symbols';
+import { Icon } from '@/components/ui/icon';
 import { Alert, StyleSheet, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 
@@ -47,7 +47,7 @@ export default function RetentionScreen() {
         {stats?.currentStreakDays === null ? (
           <Animated.View entering={FadeInDown.duration(300)}>
             <Card style={styles.startCard}>
-              <SymbolView name="bolt.shield.fill" size={32} tintColor={theme.warning} />
+              <Icon name="bolt.shield.fill" size={32} tintColor={theme.warning} />
               <ThemedText type="subtitle" style={styles.startTitle}>
                 Start your streak
               </ThemedText>
@@ -102,7 +102,7 @@ export default function RetentionScreen() {
                   <ThemedText type="smallBold">History</ThemedText>
                   {resets.slice(0, 10).map((event) => (
                     <View key={event.id} style={styles.historyRow}>
-                      <SymbolView
+                      <Icon
                         name="arrow.counterclockwise.circle.fill"
                         size={16}
                         tintColor={theme.textSecondary}

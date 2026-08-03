@@ -1,12 +1,12 @@
-import { SymbolView, type SymbolViewProps } from 'expo-symbols';
 import { Tabs } from 'expo-router';
 
 import { HapticTab } from '@/components/haptic-tab';
+import { Icon, type IconName } from '@/components/ui/icon';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 
-function TabIcon({ name, color }: { name: SymbolViewProps['name']; color: string }) {
-  return <SymbolView name={name} size={26} tintColor={color} resizeMode="scaleAspectFit" />;
+function TabIcon({ name, color }: { name: IconName; color: string }) {
+  return <Icon name={name} size={26} tintColor={color} />;
 }
 
 export default function AppTabs() {

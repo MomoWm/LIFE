@@ -1,5 +1,5 @@
 import { Link, Stack } from 'expo-router';
-import { SymbolView } from 'expo-symbols';
+import { Icon, type IconName } from '@/components/ui/icon';
 import { Pressable, StyleSheet, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 
@@ -35,7 +35,7 @@ export default function Five45Screen() {
           headerRight: () => (
             <Link href="/five45/templates" asChild>
               <Pressable hitSlop={8}>
-                <SymbolView name="slider.horizontal.3" size={22} tintColor={theme.tint} />
+                <Icon name="slider.horizontal.3" size={22} tintColor={theme.tint} />
               </Pressable>
             </Link>
           ),
@@ -54,7 +54,7 @@ export default function Five45Screen() {
                 {today ? DAY_TYPE_LABELS[today.dayType].split(' (')[0] : ' '}
               </ThemedText>
               <View style={styles.streakRow}>
-                <SymbolView name="flame.fill" size={16} tintColor={theme.warning} />
+                <Icon name="flame.fill" size={16} tintColor={theme.warning} />
                 <ThemedText type="small" themeColor="textSecondary">
                   {streak ?? 0} day streak
                 </ThemedText>
@@ -132,14 +132,14 @@ export default function Five45Screen() {
           <Link href="/five45/review" asChild>
             <Pressable style={({ pressed }) => pressed && styles.pressed}>
               <Card style={styles.reviewRow}>
-                <SymbolView name="checkmark.rectangle.stack.fill" size={18} tintColor={theme.tint} />
+                <Icon name="checkmark.rectangle.stack.fill" size={18} tintColor={theme.tint} />
                 <ThemedText type="smallBold" style={styles.reviewTitle}>
                   Weekly review
                 </ThemedText>
                 <ThemedText type="small" themeColor="textSecondary">
                   {new Date().getDay() === 0 ? 'due today' : 'Sundays'}
                 </ThemedText>
-                <SymbolView name="chevron.right" size={13} weight="semibold" tintColor={theme.textSecondary} />
+                <Icon name="chevron.right" size={13} weight="semibold" tintColor={theme.textSecondary} />
               </Card>
             </Pressable>
           </Link>
@@ -163,7 +163,7 @@ function SectionCard({
   children,
 }: {
   title: string;
-  symbol: Parameters<typeof SymbolView>[0]['name'];
+  symbol: IconName;
   symbolColor: string;
   emptyHint: string;
   children: React.ReactNode;
@@ -172,7 +172,7 @@ function SectionCard({
   return (
     <Card style={styles.sectionCard}>
       <View style={styles.sectionHeader}>
-        <SymbolView name={symbol} size={18} tintColor={symbolColor} />
+        <Icon name={symbol} size={18} tintColor={symbolColor} />
         <ThemedText type="smallBold">{title}</ThemedText>
       </View>
       {isEmpty ? (

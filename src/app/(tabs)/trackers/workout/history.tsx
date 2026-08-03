@@ -1,6 +1,6 @@
 import { format, parseISO } from 'date-fns';
 import { Stack } from 'expo-router';
-import { SymbolView } from 'expo-symbols';
+import { Icon } from '@/components/ui/icon';
 import { StyleSheet, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 
@@ -38,7 +38,7 @@ export default function WorkoutHistoryScreen() {
                 </ThemedText>
               </View>
               {session.ended_at ? (
-                <SymbolView name="checkmark.circle.fill" size={18} tintColor={theme.success} />
+                <Icon name="checkmark.circle.fill" size={18} tintColor={theme.success} />
               ) : null}
             </Card>
           </Animated.View>

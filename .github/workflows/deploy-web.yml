@@ -1,0 +1,55 @@
+name: Deploy web app to GitHub Pages
+
+on:
+  push:
+    branches: [claude/chat-session-yuw7d2, main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    env:
+      # Supabase publishable values — these ship inside the client bundle by
+      # design (EXPO_PUBLIC_*); row level security protects the data.
+      EXPO_PUBLIC_SUPABASE_URL: https://txoeibwdqrfuoyonponb.supabase.co
+      EXPO_PUBLIC_SUPABASE_ANON_KEY: sb_publishable_fUsvuR1tGG3Xe69d86nLoQ_86LXSN_j
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Export static web build
+        run: npx expo export --platform web
+
+      - name: Add SPA fallback for client-side routes
+        run: cp dist/index.html dist/404.html
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload site
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4

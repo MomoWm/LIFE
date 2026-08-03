@@ -1,8 +1,8 @@
 import { format } from 'date-fns';
-import * as Haptics from 'expo-haptics';
+import * as Haptics from '@/lib/haptics';
 import * as Location from 'expo-location';
 import { Stack } from 'expo-router';
-import { SymbolView } from 'expo-symbols';
+import { Icon, type IconName } from '@/components/ui/icon';
 import { useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
@@ -125,7 +125,7 @@ export default function PrayerScreen() {
         {!hasLocation ? (
           <Animated.View entering={FadeInDown.duration(300).delay(60)}>
             <Card style={styles.locationCard}>
-              <SymbolView name="location.circle.fill" size={28} tintColor={theme.tint} />
+              <Icon name="location.circle.fill" size={28} tintColor={theme.tint} />
               <ThemedText type="smallBold">Set your location</ThemedText>
               <ThemedText type="small" themeColor="textSecondary" style={styles.locationText}>
                 Prayer times are computed on-device from your coordinates — nothing is sent anywhere.
@@ -194,7 +194,7 @@ function PrayerRow({
 
   const statusButton = (
     target: PrayerStatus,
-    symbol: Parameters<typeof SymbolView>[0]['name'],
+    symbol: IconName,
     color: string
   ) => {
     const selected = status === target;
@@ -206,7 +206,7 @@ function PrayerRow({
           styles.statusButton,
           { backgroundColor: selected ? color : theme.backgroundSelected },
         ]}>
-        <SymbolView name={symbol} size={16} tintColor={selected ? '#fff' : theme.textSecondary} />
+        <Icon name={symbol} size={16} tintColor={selected ? '#fff' : theme.textSecondary} />
       </Pressable>
     );
   };
