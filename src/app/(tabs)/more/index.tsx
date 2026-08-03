@@ -64,8 +64,10 @@ export default function MoreScreen() {
             <Link href={destination.href} asChild>
               <Pressable style={({ pressed }) => pressed && styles.pressed}>
                 <Card style={styles.row}>
-                  <View style={[styles.iconBadge, { backgroundColor: `${theme.tint}1F` }]}>
-                    <Icon name={destination.symbol} size={20} tintColor={theme.tint} />
+                  {/* Navigation is chrome, not data — these stay neutral. Sage
+                      icons on a sage wash were also barely legible. */}
+                  <View style={[styles.iconBadge, { backgroundColor: theme.backgroundSelected }]}>
+                    <Icon name={destination.symbol} size={20} tintColor={theme.textSecondary} />
                   </View>
                   <ThemedText type="subtitle" style={styles.title}>
                     {destination.title}
@@ -96,6 +98,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.three,
+    // Cards default to generous padding, which is right for content but makes
+    // a five-row nav hub sparse and scroll-y.
+    paddingVertical: Spacing.three,
   },
   iconBadge: {
     width: 44,
