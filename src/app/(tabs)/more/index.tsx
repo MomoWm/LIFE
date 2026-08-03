@@ -39,6 +39,12 @@ export default function MoreScreen() {
       symbol: 'moon.zzz.fill',
     },
     {
+      href: '/more/insights',
+      title: 'Insights',
+      subtitle: 'Score trend over the last 30 days',
+      symbol: 'chart.xyaxis.line',
+    },
+    {
       href: '/more/settings',
       title: 'Settings',
       subtitle: 'Account, prayer setup, notifications',

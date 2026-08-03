@@ -118,6 +118,17 @@ export type SleepLogRow = {
   created_at: string;
 }
 
+export type DailyScoreRow = {
+  id: string;
+  user_id: string;
+  date: string;
+  score: number;
+  components: { key: string; score: number; weight: number; applicable: boolean }[];
+  formula_version: number;
+  created_at: string;
+  updated_at: string;
+}
+
 export type WorkoutCycleSettingsRow = {
   id: string;
   user_id: string;
@@ -299,6 +310,11 @@ export type Database = {
         SleepLogRow,
         WithDefaults<SleepLogRow, 'id' | 'quality_rating' | 'created_at'>,
         Partial<SleepLogRow>
+      >;
+      daily_scores: Table<
+        DailyScoreRow,
+        WithDefaults<DailyScoreRow, 'id' | 'formula_version' | 'created_at' | 'updated_at'>,
+        Partial<DailyScoreRow>
       >;
       workout_cycle_settings: Table<
         WorkoutCycleSettingsRow,

@@ -21,4 +21,5 @@ export const queryKeys = {
     ['work', 'range', userId, fromDate, toDate] as const,
   weeklyReview: (userId: string, weekStart: string) => ['reviews', 'weekly', userId, weekStart] as const,
   notificationPrefs: (userId: string) => ['notificationPrefs', userId] as const,
+  scoreHistory: (userId: string, days: number) => ['scoreHistory', userId, days] as const,
 };

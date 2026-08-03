@@ -1,6 +1,7 @@
 import { format } from 'date-fns';
 import { Link, type Href } from 'expo-router';
 import { Icon, type IconName } from '@/components/ui/icon';
+import { useEffect, useRef } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -20,6 +21,7 @@ import { useFive45Streak, useFive45Today, useToggleTask } from '@/hooks/use-five
 import { usePrayerStreak, usePrayerToday } from '@/hooks/use-prayer';
 import { useProfile } from '@/hooks/use-profile';
 import { useRetention } from '@/hooks/use-retention';
+import { useSaveTodayScore } from '@/hooks/use-score-history';
 import { useSleepLogs } from '@/hooks/use-sleep';
 import { useTheme } from '@/hooks/use-theme';
 import { useWorkTargets, useWorkToday } from '@/hooks/use-work';
@@ -81,6 +83,18 @@ export default function TodayScreen() {
     },
   ];
   const score = computeTodayScore(components);
+
+  const saveTodayScore = useSaveTodayScore();
+  const lastSavedScore = useRef<number | null>(null);
+  useEffect(() => {
+    // Rounded so a display-invisible floating-point wobble doesn't trigger a
+    // write on every render; a real change in the underlying data still does.
+    const rounded = Math.round(score * 1000) / 1000;
+    if (lastSavedScore.current === rounded) return;
+    lastSavedScore.current = rounded;
+    saveTodayScore.mutate({ score, components });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [score]);
 
   // --- phase content ---
   const wakeTasks = five45?.tasks.filter((t) => t.kind === 'wake') ?? [];

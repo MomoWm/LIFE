@@ -1,3 +1,11 @@
+/**
+ * Bump when the weighting/normalization rules below change. Persisted
+ * alongside every saved score (see hooks/use-score-history.ts) so historical
+ * numbers stay legible against the formula that actually produced them,
+ * instead of being silently reinterpreted after a future formula change.
+ */
+export const SCORE_FORMULA_VERSION = 1;
+
 export type ScoreComponent = {
   key: string;
   /** 0-1 completion for this tracker today. */
