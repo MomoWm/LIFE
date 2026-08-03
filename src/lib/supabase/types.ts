@@ -2,7 +2,12 @@
 // a live Supabase project, this can be regenerated with:
 //   npx supabase gen types typescript --project-id <id> > src/lib/supabase/types.ts
 
-type Table<Row, Insert, Update> = { Row: Row; Insert: Insert; Update: Update };
+type Table<Row, Insert, Update> = {
+  Row: Row;
+  Insert: Insert;
+  Update: Update;
+  Relationships: [];
+};
 
 export type DayType = 'standard' | 'meeting' | 'saturday' | 'sunday';
 export type TaskKind = 'wake' | 'eod';
@@ -13,7 +18,7 @@ export type WeightUnit = 'lb' | 'kg';
 export type WorkSessionStatus = 'active' | 'on_break' | 'ended';
 export type WorkEventType = 'door' | 'interaction' | 'pitch' | 'appointment';
 
-export interface ProfileRow {
+export type ProfileRow = {
   id: string;
   timezone: string;
   latitude: number | null;
@@ -25,7 +30,7 @@ export interface ProfileRow {
   updated_at: string;
 }
 
-export interface NotificationPreferencesRow {
+export type NotificationPreferencesRow = {
   id: string;
   user_id: string;
   prayer_enabled: boolean;
@@ -37,14 +42,14 @@ export interface NotificationPreferencesRow {
   updated_at: string;
 }
 
-export interface DayTemplateRow {
+export type DayTemplateRow = {
   id: string;
   user_id: string;
   day_type: DayType;
   created_at: string;
 }
 
-export interface TemplateTaskRow {
+export type TemplateTaskRow = {
   id: string;
   template_id: string;
   user_id: string;
@@ -54,7 +59,7 @@ export interface TemplateTaskRow {
   created_at: string;
 }
 
-export interface TaskCompletionRow {
+export type TaskCompletionRow = {
   id: string;
   user_id: string;
   date: string;
@@ -62,7 +67,7 @@ export interface TaskCompletionRow {
   completed_at: string;
 }
 
-export interface GoalRow {
+export type GoalRow = {
   id: string;
   user_id: string;
   title: string;
@@ -75,7 +80,7 @@ export interface GoalRow {
   updated_at: string;
 }
 
-export interface PrayerLogRow {
+export type PrayerLogRow = {
   id: string;
   user_id: string;
   date: string;
@@ -85,7 +90,7 @@ export interface PrayerLogRow {
   created_at: string;
 }
 
-export interface QadaMakeupRow {
+export type QadaMakeupRow = {
   id: string;
   user_id: string;
   prayer: PrayerName;
@@ -94,7 +99,7 @@ export interface QadaMakeupRow {
   created_at: string;
 }
 
-export interface RetentionEventRow {
+export type RetentionEventRow = {
   id: string;
   user_id: string;
   event_type: 'reset' | 'note';
@@ -103,7 +108,7 @@ export interface RetentionEventRow {
   created_at: string;
 }
 
-export interface SleepLogRow {
+export type SleepLogRow = {
   id: string;
   user_id: string;
   date: string;
@@ -113,14 +118,14 @@ export interface SleepLogRow {
   created_at: string;
 }
 
-export interface WorkoutCycleSettingsRow {
+export type WorkoutCycleSettingsRow = {
   id: string;
   user_id: string;
   cycle_start_date: string;
   created_at: string;
 }
 
-export interface ExerciseCatalogRow {
+export type ExerciseCatalogRow = {
   id: string;
   user_id: string;
   name: string;
@@ -128,7 +133,7 @@ export interface ExerciseCatalogRow {
   created_at: string;
 }
 
-export interface WorkoutSessionRow {
+export type WorkoutSessionRow = {
   id: string;
   user_id: string;
   date: string;
@@ -140,7 +145,7 @@ export interface WorkoutSessionRow {
   created_at: string;
 }
 
-export interface WorkoutExerciseEntryRow {
+export type WorkoutExerciseEntryRow = {
   id: string;
   session_id: string;
   user_id: string;
@@ -149,7 +154,7 @@ export interface WorkoutExerciseEntryRow {
   created_at: string;
 }
 
-export interface WorkoutSetRow {
+export type WorkoutSetRow = {
   id: string;
   exercise_entry_id: string;
   user_id: string;
@@ -161,7 +166,7 @@ export interface WorkoutSetRow {
   created_at: string;
 }
 
-export interface WorkSessionRow {
+export type WorkSessionRow = {
   id: string;
   user_id: string;
   date: string;
@@ -171,7 +176,7 @@ export interface WorkSessionRow {
   created_at: string;
 }
 
-export interface WorkBreakRow {
+export type WorkBreakRow = {
   id: string;
   work_session_id: string;
   user_id: string;
@@ -180,7 +185,7 @@ export interface WorkBreakRow {
   created_at: string;
 }
 
-export interface WorkEventRow {
+export type WorkEventRow = {
   id: string;
   user_id: string;
   work_session_id: string | null;
@@ -190,7 +195,7 @@ export interface WorkEventRow {
   created_at: string;
 }
 
-export interface WorkTargetsRow {
+export type WorkTargetsRow = {
   id: string;
   user_id: string;
   doors_target: number | null;
@@ -200,7 +205,7 @@ export interface WorkTargetsRow {
   updated_at: string;
 }
 
-export interface WeeklyReviewRow {
+export type WeeklyReviewRow = {
   id: string;
   user_id: string;
   week_start_date: string;
@@ -209,7 +214,7 @@ export interface WeeklyReviewRow {
   created_at: string;
 }
 
-export interface WeeklyReviewGoalCheckinRow {
+export type WeeklyReviewGoalCheckinRow = {
   id: string;
   weekly_review_id: string;
   user_id: string;
@@ -219,7 +224,7 @@ export interface WeeklyReviewGoalCheckinRow {
   created_at: string;
 }
 
-export interface QuarterlyReviewRow {
+export type QuarterlyReviewRow = {
   id: string;
   user_id: string;
   cycle_start_date: string;
@@ -232,7 +237,7 @@ export interface QuarterlyReviewRow {
 type WithDefaults<Row, Defaulted extends keyof Row> = Omit<Row, Defaulted> &
   Partial<Pick<Row, Defaulted>>;
 
-export interface Database {
+export type Database = {
   public: {
     Tables: {
       profiles: Table<
@@ -370,5 +375,9 @@ export interface Database {
         Partial<QuarterlyReviewRow>
       >;
     };
+    Views: { [_ in never]: never };
+    Functions: { [_ in never]: never };
+    Enums: { [_ in never]: never };
+    CompositeTypes: { [_ in never]: never };
   };
 }
