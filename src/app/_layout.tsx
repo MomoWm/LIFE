@@ -1,7 +1,8 @@
 import NetInfo from '@react-native-community/netinfo';
+import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { onlineManager } from '@tanstack/react-query';
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
-import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router';
+import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import { useColorScheme } from 'react-native';
