@@ -6,9 +6,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+  contents: write
 
 concurrency:
   group: pages
@@ -17,9 +15,6 @@ concurrency:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     env:
       # Supabase publishable values — these ship inside the client bundle by
       # design (EXPO_PUBLIC_*); row level security protects the data.
@@ -39,19 +34,17 @@ jobs:
       - name: Export static web build
         run: npx expo export --platform web
 
-      - name: Add SPA fallback for client-side routes
-        run: cp dist/index.html dist/404.html
+      - name: Add SPA fallback and disable Jekyll
+        run: |
+          cp dist/index.html dist/404.html
+          touch dist/.nojekyll
 
-      - name: Configure Pages
-        uses: actions/configure-pages@v5
+      # Publishing to a gh-pages branch auto-enables GitHub Pages for the
+      # repo — no Settings visit and no Pages API permissions needed, unlike
+      # actions/configure-pages (whose site creation fails for the default
+      # workflow token: "Resource not accessible by integration").
+      - name: Deploy to gh-pages branch
+        uses: peaceiris/actions-gh-pages@v4
         with:
-          enablement: true
-
-      - name: Upload site
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: dist
-
-      - name: Deploy
-        id: deployment
-        uses: actions/deploy-pages@v4
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: dist
