@@ -30,20 +30,26 @@ export const Colors = {
     info: '#2F6CA8',
   },
   dark: {
-    text: '#FBFBFC',
-    textSecondary: '#9A9DA8',
-    textTertiary: '#63666F',
-    background: '#08090C',
-    backgroundElement: '#141620',
-    backgroundSelected: '#1D202B',
-    groupedBackground: '#08090C',
-    separator: 'rgba(255, 255, 255, 0.07)',
-    tint: '#3DBE8B',
-    onTint: '#04140D',
-    success: '#3DBE8B',
-    warning: '#D9A03F',
-    danger: '#E1584F',
-    info: '#6C9FD4',
+    text: '#F2F3F2',
+    textSecondary: '#96999B',
+    textTertiary: '#616468',
+    // Graphite, not void. A pure-black ground with a saturated accent on top
+    // is the arcade/game look; lifting the base into charcoal is most of what
+    // separates "instrument" from "HUD".
+    background: '#101216',
+    backgroundElement: '#191C21',
+    backgroundSelected: '#23272E',
+    groupedBackground: '#101216',
+    separator: 'rgba(255, 255, 255, 0.08)',
+    // Pale, heavily desaturated sage. The previous #3DBE8B was a vivid mint —
+    // neon green on black is exactly the arcade signature. At this saturation
+    // it reads first as "light", and only then as green.
+    tint: '#A6C1B2',
+    onTint: '#0E1512',
+    success: '#A6C1B2',
+    warning: '#C9A469',
+    danger: '#D2807A',
+    info: '#8FA9C4',
   },
 } as const;
 
@@ -56,13 +62,13 @@ export type ThemeColor = keyof typeof Colors.light & keyof typeof Colors.dark;
  */
 export const Surface = {
   /** Card gradient, top (lit) -> bottom (shadowed). */
-  card: ['#191C27', '#111219'] as const,
+  card: ['#1D2026', '#15171C'] as const,
   /** Raised/interactive variant, one step brighter. */
-  cardRaised: ['#222634', '#171A24'] as const,
+  cardRaised: ['#262A32', '#1B1E24'] as const,
   /** Hairline highlight along the top edge, where light would hit. */
-  edgeHighlight: 'rgba(255, 255, 255, 0.10)',
+  edgeHighlight: 'rgba(255, 255, 255, 0.09)',
   /** Accent wash for hero surfaces — tint at very low alpha. */
-  accentWash: ['rgba(61, 190, 139, 0.16)', 'rgba(61, 190, 139, 0.02)'] as const,
+  accentWash: ['rgba(166, 193, 178, 0.14)', 'rgba(166, 193, 178, 0.02)'] as const,
 } as const;
 
 export const Fonts = Platform.select({

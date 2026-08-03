@@ -55,10 +55,11 @@ export function ProgressRing({
         height={size}
         style={{ position: 'absolute', transform: [{ rotate: '-90deg' }] }}>
         <Defs>
-          {/* The arc brightens as it fills, so completion literally reads as
-              light gathering rather than a flat bar bending into a circle. */}
+          {/* A gentle lift along the arc — enough to feel drawn rather than
+              printed, but shallow, since a strong glow-up ramp is what makes a
+              ring read as a game meter instead of an instrument dial. */}
           <LinearGradient id="ringFill" x1="0" y1="0" x2="1" y2="1">
-            <Stop offset="0" stopColor={ringColor} stopOpacity="0.55" />
+            <Stop offset="0" stopColor={ringColor} stopOpacity="0.78" />
             <Stop offset="1" stopColor={ringColor} stopOpacity="1" />
           </LinearGradient>
         </Defs>
