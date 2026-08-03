@@ -156,6 +156,8 @@ function encodePng(size, coverage) {
 const root = path.join(__dirname, '..');
 const outputs = [
   ['public/apple-touch-icon.png', 180],
+  ['public/apple-touch-icon-152.png', 152],
+  ['public/apple-touch-icon-167.png', 167],
   ['public/icons/icon-192.png', 192],
   ['public/icons/icon-512.png', 512],
   ['assets/images/favicon.png', 64],
