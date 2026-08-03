@@ -35,7 +35,7 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#208AEF",
+          "backgroundColor": "#0B0B0D",
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 76
         }
@@ -44,8 +44,7 @@
     ],
     "experiments": {
       "typedRoutes": true,
-      "reactCompiler": true,
-      "baseUrl": "/LIFE"
+      "reactCompiler": true
     }
   }
 }

@@ -1,37 +1,49 @@
 /**
- * Colors used across the app, mapped to iOS system color roles so light/dark
- * mode tracks the platform convention. Extend here rather than inlining hex
- * values in components.
+ * LIFE design tokens.
+ *
+ * The visual identity is a restrained dark "command center": near-black
+ * charcoal grounds, tonal layering instead of shadows, one muted premium
+ * green accent, and semantic colors used only when state demands them.
+ * Extend here rather than inlining hex values in components.
+ *
+ * v1 ships dark-only (see use-theme.ts); the light palette is kept in sync
+ * so a future light mode is a one-line change, not a redesign.
  */
 
 import { Platform } from 'react-native';
 
 export const Colors = {
   light: {
-    text: '#000000',
-    textSecondary: '#60646C',
-    background: '#ffffff',
-    backgroundElement: '#F0F0F3',
-    backgroundSelected: '#E0E1E6',
-    groupedBackground: '#F2F2F7',
-    separator: '#E5E5EA',
-    tint: '#007AFF',
-    success: '#34C759',
-    warning: '#FF9500',
-    danger: '#FF3B30',
+    text: '#1A1A18',
+    textSecondary: '#61615F',
+    textTertiary: '#8F8F8C',
+    background: '#FAFAF9',
+    backgroundElement: '#F1F1EF',
+    backgroundSelected: '#E8E8E5',
+    groupedBackground: '#F5F5F4',
+    separator: '#E3E3E0',
+    tint: '#0E8F60',
+    onTint: '#FFFFFF',
+    success: '#0E8F60',
+    warning: '#9A6B0B',
+    danger: '#BC3F37',
+    info: '#2F6CA8',
   },
   dark: {
-    text: '#ffffff',
-    textSecondary: '#B0B4BA',
-    background: '#000000',
-    backgroundElement: '#212225',
-    backgroundSelected: '#2E3135',
-    groupedBackground: '#000000',
-    separator: '#38383A',
-    tint: '#0A84FF',
-    success: '#30D158',
-    warning: '#FF9F0A',
-    danger: '#FF453A',
+    text: '#F4F4F2',
+    textSecondary: '#A0A0A8',
+    textTertiary: '#6E6E76',
+    background: '#0B0B0D',
+    backgroundElement: '#151518',
+    backgroundSelected: '#1E1E22',
+    groupedBackground: '#0B0B0D',
+    separator: 'rgba(255, 255, 255, 0.08)',
+    tint: '#3DBE8B',
+    onTint: '#07130D',
+    success: '#3DBE8B',
+    warning: '#D9A03F',
+    danger: '#E1584F',
+    info: '#6C9FD4',
   },
 } as const;
 
@@ -55,10 +67,10 @@ export const Fonts = Platform.select({
     mono: 'monospace',
   },
   web: {
-    sans: 'var(--font-display)',
-    serif: 'var(--font-serif)',
-    rounded: 'var(--font-rounded)',
-    mono: 'var(--font-mono)',
+    sans: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
+    serif: 'ui-serif, Georgia, serif',
+    rounded: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+    mono: "ui-monospace, 'SF Mono', SFMono-Regular, Menlo, monospace",
   },
 });
 
@@ -77,6 +89,19 @@ export const CornerRadius = {
   medium: 12,
   large: 16,
   xlarge: 20,
+} as const;
+
+/**
+ * Motion durations (ms). Fast and meaningful — press feedback is near-instant,
+ * transitions never make the user wait. Pair with Easing.out(Easing.quad) for
+ * entries and Easing.inOut(Easing.quad) for state changes.
+ */
+export const Motion = {
+  press: 140,
+  transition: 200,
+  entry: 260,
+  /** Scale applied to pressables while pressed. */
+  pressScale: 0.97,
 } as const;
 
 export const BottomTabInset = Platform.select({ ios: 50, android: 80 }) ?? 0;

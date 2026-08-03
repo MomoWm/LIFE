@@ -1,12 +1,11 @@
-/**
- * Learn more about light and dark modes:
- * https://docs.expo.dev/guides/color-schemes/
- */
-
 import { Colors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
 
+/**
+ * v1 ships dark-only by design decision (see DECISIONS.md): the LIFE identity
+ * is a dark command center, and shipping one polished theme beats two
+ * half-tuned ones. Swap back to `Colors[useColorScheme() ?? 'dark']` when a
+ * light mode earns its place.
+ */
 export function useTheme() {
-  const scheme = useColorScheme();
-  return Colors[scheme ?? 'light'];
+  return Colors.dark;
 }

@@ -1,14 +1,29 @@
 import NetInfo from '@react-native-community/netinfo';
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
+import { DarkTheme, ThemeProvider } from '@react-navigation/native';
 import { onlineManager } from '@tanstack/react-query';
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
+import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
-import { useColorScheme } from 'react-native';
 
+import { Colors } from '@/constants/theme';
 import { AuthProvider, useAuth } from '@/hooks/use-auth';
 import { asyncStoragePersister, queryClient } from '@/lib/query/queryClient';
+
+// Navigation chrome (stack backgrounds, headers, tab bar defaults) follows the
+// LIFE charcoal palette instead of React Navigation's stock dark theme.
+const LifeTheme = {
+  ...DarkTheme,
+  colors: {
+    ...DarkTheme.colors,
+    primary: Colors.dark.tint,
+    background: Colors.dark.background,
+    card: Colors.dark.background,
+    text: Colors.dark.text,
+    border: Colors.dark.separator,
+  },
+} as const;
 
 SplashScreen.preventAutoHideAsync();
 
@@ -41,15 +56,14 @@ function RootNavigator() {
 }
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
-
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+    <ThemeProvider value={LifeTheme}>
       <PersistQueryClientProvider
         client={queryClient}
         persistOptions={{ persister: asyncStoragePersister }}>
         <AuthProvider>
           <RootNavigator />
+          <StatusBar style="light" />
         </AuthProvider>
       </PersistQueryClientProvider>
     </ThemeProvider>
