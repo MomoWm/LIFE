@@ -40,6 +40,16 @@ export function BarChart({ data, height = 120, color, formatValue }: BarChartPro
         <Svg width={width} height={height}>
           {data.map((datum, i) => {
             const barHeight = Math.max(2, (datum.value / max) * (height - 4));
+            const isLatest = i === data.length - 1;
+            // A wall of saturated accent reads as decoration, not data. History
+            // sits back in a muted tone; only the most recent bar carries the
+            // full accent, so the eye lands on "where am I now".
+            const fill =
+              datum.value === 0
+                ? theme.backgroundSelected
+                : isLatest
+                  ? barColor
+                  : `${barColor}59`;
             return (
               <Rect
                 key={`${datum.label}-${i}`}
@@ -48,7 +58,7 @@ export function BarChart({ data, height = 120, color, formatValue }: BarChartPro
                 width={barWidth}
                 height={barHeight}
                 rx={3}
-                fill={datum.value > 0 ? barColor : theme.backgroundSelected}
+                fill={fill}
               />
             );
           })}

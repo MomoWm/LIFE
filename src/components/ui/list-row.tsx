@@ -60,12 +60,12 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: Spacing.two,
-    minHeight: 44,
+    gap: Spacing.three,
+    minHeight: 56,
   },
   textColumn: {
     flex: 1,
-    gap: 2,
+    gap: 1,
   },
   pressed: {
     opacity: 0.6,

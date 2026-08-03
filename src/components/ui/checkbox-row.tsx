@@ -59,11 +59,9 @@ export function CheckboxRow({ title, checked, onToggle, disabled }: CheckboxRowP
         />
       </Animated.View>
       <Animated.View style={[styles.titleWrap, titleStyle]}>
-        <ThemedText
-          style={checked && { textDecorationLine: 'line-through' }}
-          themeColor={checked ? 'textSecondary' : 'text'}>
-          {title}
-        </ThemedText>
+        {/* Done state reads through the filled check and the dimmed label —
+            a strikethrough on top of both is redundant and looks dated. */}
+        <ThemedText themeColor={checked ? 'textTertiary' : 'text'}>{title}</ThemedText>
       </Animated.View>
     </Pressable>
   );

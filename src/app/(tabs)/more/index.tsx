@@ -67,7 +67,7 @@ export default function MoreScreen() {
                   <View style={[styles.iconBadge, { backgroundColor: `${theme.tint}1F` }]}>
                     <Icon name={destination.symbol} size={20} tintColor={theme.tint} />
                   </View>
-                  <ThemedText type="smallBold" style={styles.title}>
+                  <ThemedText type="subtitle" style={styles.title}>
                     {destination.title}
                   </ThemedText>
                   {destination.preview ? (
@@ -109,6 +109,7 @@ const styles = StyleSheet.create({
   },
   preview: {
     fontVariant: ['tabular-nums'],
+    marginRight: Spacing.one,
   },
   pressed: {
     opacity: 0.8,
