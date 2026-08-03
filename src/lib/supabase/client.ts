@@ -5,15 +5,23 @@ import { safeStorage } from '@/lib/storage';
 
 import type { Database } from './types';
 
-const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL;
-const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
+// Fallback to the actual LIFE project's publishable values — this is a
+// single-owner personal app, not distributed OSS boilerplate, and these are
+// already committed in plaintext in .github/workflows/deploy-web.yml (RLS
+// protects the data, not secrecy of the anon key). Env vars still win when
+// set, so a genuinely different Supabase project (local dev against a
+// scratch database, a fork) via `.env.local` overrides them as before.
+const DEFAULT_SUPABASE_URL = 'https://txoeibwdqrfuoyonponb.supabase.co';
+const DEFAULT_SUPABASE_ANON_KEY = 'sb_publishable_fUsvuR1tGG3Xe69d86nLoQ_86LXSN_j';
 
-/** False until the user supplies their own Supabase project via `.env.local`. */
+const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL || DEFAULT_SUPABASE_URL;
+const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || DEFAULT_SUPABASE_ANON_KEY;
+
 export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseAnonKey);
 
 export const supabase = createClient<Database>(
-  supabaseUrl || 'https://placeholder.supabase.co',
-  supabaseAnonKey || 'placeholder-anon-key',
+  supabaseUrl,
+  supabaseAnonKey,
   {
     auth: {
       storage: safeStorage,
