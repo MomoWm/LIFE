@@ -9,8 +9,9 @@ import { ThemedText } from '@/components/themed-text';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Screen } from '@/components/ui/screen';
-import { StatCard } from '@/components/ui/stat-card';
-import { Spacing } from '@/constants/theme';
+import { Section, SectionDivider } from '@/components/ui/section';
+import { Stat } from '@/components/ui/stat';
+import { Domain, Spacing } from '@/constants/theme';
 import { useLogRetentionEvent, useRetention } from '@/hooks/use-retention';
 import { useTheme } from '@/hooks/use-theme';
 
@@ -42,7 +43,7 @@ export default function RetentionScreen() {
 
   return (
     <>
-      <Stack.Screen options={{ title: 'Retention' }} />
+      <Stack.Screen options={{ title: 'Discipline' }} />
       <Screen>
         {stats?.currentStreakDays === null ? (
           <Animated.View entering={FadeInDown.duration(300)}>
@@ -74,20 +75,18 @@ export default function RetentionScreen() {
               </Card>
             </Animated.View>
 
-            <Animated.View entering={FadeInDown.duration(300).delay(60)} style={styles.statRow}>
-              <StatCard
-                label="Best run"
-                value={String(stats?.bestStreakDays ?? 0)}
-                unit="days"
-                symbol="trophy.fill"
-                symbolColor={theme.textSecondary}
-              />
-              <StatCard
-                label="Resets"
-                value={String(stats?.totalResets ?? 0)}
-                symbol="arrow.counterclockwise"
-                symbolColor={theme.textSecondary}
-              />
+            <Animated.View entering={FadeInDown.duration(300).delay(60)}>
+              <Section title="All time">
+                <View style={styles.statRow}>
+                  <Stat
+                    value={String(stats?.bestStreakDays ?? 0)}
+                    label="Best run"
+                    unit="d"
+                    color={Domain.routine}
+                  />
+                  <Stat value={String(stats?.totalResets ?? 0)} label="Resets" />
+                </View>
+              </Section>
             </Animated.View>
 
             <Animated.View entering={FadeInDown.duration(300).delay(120)}>
@@ -96,26 +95,27 @@ export default function RetentionScreen() {
 
             {resets.length > 0 ? (
               <Animated.View entering={FadeInDown.duration(300).delay(180)}>
-                <Card style={styles.historyCard}>
-                  <ThemedText type="smallBold">History</ThemedText>
-                  {resets.slice(0, 10).map((event) => (
-                    <View key={event.id} style={styles.historyRow}>
-                      <Icon
-                        name="arrow.counterclockwise.circle.fill"
-                        size={16}
-                        tintColor={theme.textSecondary}
-                      />
-                      <ThemedText type="small" style={styles.historyDate}>
-                        {format(new Date(event.occurred_at), 'MMM d, yyyy')}
-                      </ThemedText>
-                      {event.note ? (
-                        <ThemedText type="small" themeColor="textSecondary" numberOfLines={1}>
-                          {event.note}
+                <Section title="History" contentStyle={styles.historyList}>
+                  {resets.slice(0, 10).map((event, i) => (
+                    <View key={event.id}>
+                      {i > 0 ? <SectionDivider /> : null}
+                      <View style={styles.historyRow}>
+                        <ThemedText type="small" style={styles.historyDate}>
+                          {format(new Date(event.occurred_at), 'MMM d, yyyy')}
                         </ThemedText>
-                      ) : null}
+                        {event.note ? (
+                          <ThemedText
+                            type="small"
+                            themeColor="textTertiary"
+                            numberOfLines={1}
+                            style={styles.historyNote}>
+                            {event.note}
+                          </ThemedText>
+                        ) : null}
+                      </View>
                     </View>
                   ))}
-                </Card>
+                </Section>
               </Animated.View>
             ) : null}
           </>
@@ -144,17 +144,21 @@ const styles = StyleSheet.create({
   },
   statRow: {
     flexDirection: 'row',
-    gap: Spacing.three,
+    gap: Spacing.five,
   },
-  historyCard: {
-    gap: Spacing.two,
+  historyList: {
+    gap: 0,
   },
   historyRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: Spacing.two,
+    gap: Spacing.three,
+    minHeight: 44,
   },
   historyDate: {
-    minWidth: 100,
+    minWidth: 104,
+  },
+  historyNote: {
+    flex: 1,
   },
 });
