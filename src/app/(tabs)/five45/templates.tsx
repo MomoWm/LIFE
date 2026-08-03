@@ -7,7 +7,7 @@ import { ThemedText } from '@/components/themed-text';
 import { Card } from '@/components/ui/card';
 import { Screen } from '@/components/ui/screen';
 import { CornerRadius, Spacing } from '@/constants/theme';
-import { DAY_TYPES, DAY_TYPE_LABELS, type DayType } from '@/lib/dayType/dayType';
+import { DAY_TYPES, type DayType } from '@/lib/dayType/dayType';
 import { useDayTemplate, useSaveTemplateTask } from '@/hooks/use-five45';
 import { useTheme } from '@/hooks/use-theme';
 
@@ -40,11 +40,16 @@ export default function TemplatesScreen() {
                 onPress={() => setDayType(type)}
                 style={[
                   styles.chip,
-                  { backgroundColor: selected ? theme.tint : theme.backgroundElement },
+                  {
+                    // Selection is chrome, not data — it follows the primary
+                    // button (near-white on near-black), not the accent.
+                    backgroundColor: selected ? theme.text : theme.backgroundElement,
+                    borderColor: selected ? 'transparent' : theme.separator,
+                  },
                 ]}>
                 <ThemedText
                   type="smallBold"
-                  style={{ color: selected ? theme.onTint : theme.textSecondary }}>
+                  style={{ color: selected ? theme.background : theme.textSecondary }}>
                   {CHIP_LABELS[type]}
                 </ThemedText>
               </Pressable>
@@ -52,8 +57,8 @@ export default function TemplatesScreen() {
           })}
         </View>
 
-        <ThemedText type="small" themeColor="textSecondary">
-          {DAY_TYPE_LABELS[dayType]} — changes save automatically.
+        <ThemedText type="small" themeColor="textTertiary">
+          Changes save automatically.
         </ThemedText>
 
         <Animated.View key={dayType} entering={FadeIn.duration(200)} style={styles.sections}>
@@ -134,7 +139,13 @@ function TaskInput({
         returnKeyType="done"
         style={[
           styles.input,
-          { color: theme.text, backgroundColor: theme.background, borderColor: theme.separator },
+          {
+            color: theme.text,
+            // Ground-colored fields punched holes in the lit card; an inset
+            // field should sit a step above the surface, not below it.
+            backgroundColor: theme.backgroundSelected,
+            borderColor: theme.separator,
+          },
         ]}
       />
     </View>
@@ -148,9 +159,17 @@ const styles = StyleSheet.create({
     gap: Spacing.two,
   },
   chip: {
+    // Four day-types on a phone always wrapped 3 + 1, orphaning "Sunday".
+    // A half-width basis makes it a balanced 2x2 instead.
+    flexBasis: '47%',
+    flexGrow: 1,
+    alignItems: 'center',
+    minHeight: 44,
+    justifyContent: 'center',
     paddingVertical: Spacing.two,
     paddingHorizontal: Spacing.three,
-    borderRadius: CornerRadius.xlarge,
+    borderRadius: CornerRadius.medium,
+    borderWidth: 1,
   },
   sections: {
     gap: Spacing.three,

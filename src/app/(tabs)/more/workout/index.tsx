@@ -214,9 +214,13 @@ function ExerciseCard({ entry }: { entry: SessionEntry }) {
   return (
     <Card style={styles.exerciseCard}>
       <Link href={{ pathname: '/more/workout/exercise/[id]', params: { id: entry.exercise.id } }} asChild>
-        <Pressable style={({ pressed }) => [styles.exerciseHeader, pressed && styles.pressed]}>
-          <ThemedText type="smallBold">{entry.exercise.name}</ThemedText>
-          <Icon name="chart.xyaxis.line" size={16} tintColor={theme.tint} />
+        {/* Row layout must sit on an inner View — see the note in
+            (tabs)/index.tsx: `Link asChild` overrides Pressable's style on web. */}
+        <Pressable style={({ pressed }) => (pressed ? styles.pressed : undefined)}>
+          <View style={styles.exerciseHeader}>
+            <ThemedText type="smallBold">{entry.exercise.name}</ThemedText>
+            <Icon name="chart.xyaxis.line" size={16} tintColor={theme.tint} />
+          </View>
         </Pressable>
       </Link>
 

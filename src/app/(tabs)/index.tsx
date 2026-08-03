@@ -131,7 +131,9 @@ export default function TodayScreen() {
               </ProgressRing>
 
               <View style={styles.heroCopy}>
-                <ThemedText type="title">{greeting}</ThemedText>
+                {/* The score is the hero; the greeting supports it. At title
+                    size it wraps against the ring and competes for rank. */}
+                <ThemedText type="subtitle">{greeting}</ThemedText>
                 <ThemedText type="small" themeColor="textSecondary">
                   {prayedCount} of 5 prayers
                 </ThemedText>
@@ -150,7 +152,11 @@ export default function TodayScreen() {
                   key={i}
                   style={[
                     styles.prayerDot,
-                    { backgroundColor: i < prayedCount ? theme.tint : theme.backgroundSelected },
+                    {
+                      // The unfilled track needs to read against the raised
+                      // hero surface, which backgroundSelected is too close to.
+                      backgroundColor: i < prayedCount ? theme.tint : 'rgba(255,255,255,0.10)',
+                    },
                   ]}
                 />
               ))}
@@ -373,12 +379,22 @@ function DashboardSection({
     <Animated.View entering={FadeInDown.duration(350).delay(delay)}>
       <Card style={styles.sectionCard}>
         <Link href={href} asChild>
-          <Pressable style={({ pressed }) => [styles.sectionHeader, pressed && styles.pressed]}>
-            <Icon name={symbol} size={17} tintColor={symbolColor} />
-            <ThemedText type="smallBold" style={styles.sectionTitle}>
-              {title}
-            </ThemedText>
-            <Icon name="chevron.right" size={13} weight="semibold" tintColor={theme.textSecondary} />
+          {/* Layout lives on an inner View, not on the Pressable: under
+              `Link asChild` on web the Pressable's style is overridden, which
+              silently drops flexDirection and stacks the row vertically. */}
+          <Pressable style={({ pressed }) => (pressed ? styles.pressed : undefined)}>
+            <View style={styles.sectionHeader}>
+              <Icon name={symbol} size={17} tintColor={symbolColor} />
+              <ThemedText type="smallBold" style={styles.sectionTitle}>
+                {title}
+              </ThemedText>
+              <Icon
+                name="chevron.right"
+                size={13}
+                weight="semibold"
+                tintColor={theme.textTertiary}
+              />
+            </View>
           </Pressable>
         </Link>
         {children}
