@@ -1,3 +1,5 @@
+import NetInfo from '@react-native-community/netinfo';
+import { onlineManager } from '@tanstack/react-query';
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
@@ -8,6 +10,11 @@ import { AuthProvider, useAuth } from '@/hooks/use-auth';
 import { asyncStoragePersister, queryClient } from '@/lib/query/queryClient';
 
 SplashScreen.preventAutoHideAsync();
+
+// Let TanStack Query pause/resume fetches with real connectivity.
+onlineManager.setEventListener((setOnline) =>
+  NetInfo.addEventListener((state) => setOnline(!!state.isConnected))
+);
 
 function RootNavigator() {
   const { session, isLoading } = useAuth();
