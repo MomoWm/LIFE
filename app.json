@@ -9,7 +9,12 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "icon": "./assets/expo.icon"
+      "icon": "./assets/expo.icon",
+      "bundleIdentifier": "com.momowm.life",
+      "supportsTablet": false,
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "LIFE uses your location to compute accurate daily prayer times on-device. Nothing is sent anywhere."
+      }
     },
     "android": {
       "adaptiveIcon": {
