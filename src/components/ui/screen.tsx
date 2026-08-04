@@ -1,6 +1,6 @@
 import { HeaderHeightContext } from '@react-navigation/elements';
 import type { PropsWithChildren } from 'react';
-import { useContext } from 'react';
+import { Children, useContext } from 'react';
 import {
   Platform,
   ScrollView,
@@ -10,6 +10,8 @@ import {
   type StyleProp,
   type ViewStyle,
 } from 'react-native';
+import Animated, { FadeInDown, useReducedMotion } from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { MaxContentWidth, Spacing, WideBreakpoint } from '@/constants/theme';
 
@@ -32,10 +34,24 @@ export function useIsWide() {
  * system status bar. Read the actual rendered header height (0 when there
  * isn't one, e.g. the Home tab, which has no nested header) and pad web only;
  * native already handles it via contentInsetAdjustmentBehavior.
+ *
+ * A header already includes the status-bar inset in its measured height, so
+ * the two paddings are alternatives, never additive: with no header — Home,
+ * the one screen that opens straight onto a full-bleed hero — the safe-area
+ * inset has to be applied directly or the card sits under the notch in an
+ * installed PWA.
  */
 export function Screen({ children, contentStyle }: ScreenProps) {
   const headerHeight = useContext(HeaderHeightContext) ?? 0;
+  const insets = useSafeAreaInsets();
   const isWide = useIsWide();
+  const reduceMotion = useReducedMotion();
+  const topPad =
+    headerHeight > 0
+      ? Platform.OS === 'web'
+        ? headerHeight + Spacing.three
+        : 0
+      : insets.top + Spacing.two;
 
   return (
     <ScrollView
@@ -47,12 +63,31 @@ export function Screen({ children, contentStyle }: ScreenProps) {
       contentContainerStyle={[
         styles.outer,
         isWide && styles.outerWide,
-        Platform.OS === 'web' && headerHeight > 0 && { paddingTop: headerHeight + Spacing.three },
+        topPad > 0 && { paddingTop: topPad },
       ]}>
       {/* Capped and centred so an iPad doesn't stretch a phone layout across
           1000pt of width — long measures and marooned controls are what make a
           tablet build feel like an enlarged phone. */}
-      <View style={[styles.inner, isWide && styles.innerWide, contentStyle]}>{children}</View>
+      <View style={[styles.inner, isWide && styles.innerWide, contentStyle]}>
+        {reduceMotion
+          ? children
+          : Children.map(children, (child, i) =>
+              // `{cond && <X/>}` yields `false`, which renders nothing on its
+              // own — but wrapped it becomes a zero-height view that still
+              // claims a `gap`, opening a hole in the layout.
+              child == null || typeof child === 'boolean' ? null : (
+                // Capped stagger: past ~6 blocks the tail would still be
+                // arriving after the eye had already reached it, which reads
+                // as lag rather than composition.
+                <Animated.View
+                  entering={FadeInDown.springify()
+                    .damping(18)
+                    .delay(Math.min(i, 6) * 55)}>
+                  {child}
+                </Animated.View>
+              )
+            )}
+      </View>
     </ScrollView>
   );
 }
