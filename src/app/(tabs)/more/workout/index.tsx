@@ -9,8 +9,9 @@ import Animated, { FadeInDown } from 'react-native-reanimated';
 import { ThemedText } from '@/components/themed-text';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { CycleStrip } from '@/components/ui/cycle-strip';
 import { Screen } from '@/components/ui/screen';
-import { CornerRadius, Spacing } from '@/constants/theme';
+import { CornerRadius, Domain, Spacing } from '@/constants/theme';
 import { SPLIT, splitForDay } from '@/lib/workout/split';
 import {
   useAddExerciseEntry,
@@ -83,17 +84,23 @@ export default function WorkoutScreen() {
         ) : (
           <>
             <Animated.View entering={FadeInDown.duration(300)}>
-              <Card style={styles.todayCard}>
+              <Card raised style={styles.todayCard}>
                 <View style={styles.todayHeader}>
-                  <View style={[styles.dayBadge, { backgroundColor: split?.isRest ? theme.backgroundSelected : theme.tint }]}>
-                    <ThemedText type="smallBold" style={{ color: split?.isRest ? theme.textSecondary : theme.onTint }}>
-                      Day {cycleDay}
+                  <View style={styles.todayCopy}>
+                    <ThemedText type="label" themeColor="textTertiary">
+                      Day {cycleDay} of 8
                     </ThemedText>
+                    <ThemedText type="title">{split?.label}</ThemedText>
                   </View>
-                  <ThemedText type="subtitle" style={styles.splitLabel}>
-                    {split?.label}
-                  </ThemedText>
                 </View>
+
+                {/* The cycle as a loop rather than a number to hold in your
+                    head — where today sits, and that rest is coming. */}
+                <CycleStrip
+                  days={SPLIT.map((d) => ({ day: d.day, isRest: d.isRest, label: d.label }))}
+                  currentDay={cycleDay}
+                  color={Domain.training}
+                />
                 {split?.isRest ? (
                   <ThemedText type="small" themeColor="textSecondary">
                     Rest day — recovery is where the muscle gets built. Next up:{' '}
@@ -302,12 +309,16 @@ const styles = StyleSheet.create({
     gap: 1,
   },
   todayCard: {
-    gap: Spacing.two,
+    gap: Spacing.four,
   },
   todayHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.two,
+  },
+  todayCopy: {
+    flex: 1,
+    gap: Spacing.one,
   },
   dayBadge: {
     paddingHorizontal: Spacing.two,

@@ -14,7 +14,7 @@ export default function PrayerLayout() {
         headerTintColor: theme.tint,
         headerLargeTitleStyle: { color: theme.text },
         headerTitleStyle: { color: theme.text },
-        contentStyle: { backgroundColor: theme.background },
+        contentStyle: { backgroundColor: 'transparent' },
       }}
     />
   );
