@@ -103,7 +103,7 @@ export function SegmentRing({
           <Path
             key={`track-${seg.key}`}
             d={arcPath(c, c, r, start, start + sweep)}
-            stroke={theme.backgroundSelected}
+            stroke={theme.track}
             strokeWidth={strokeWidth}
             strokeLinecap="round"
             fill="none"

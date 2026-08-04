@@ -4,7 +4,6 @@ import { Stack } from 'expo-router';
 import { Icon } from '@/components/ui/icon';
 import { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
-import Animated, { FadeInDown } from 'react-native-reanimated';
 
 import { ThemedText } from '@/components/themed-text';
 import { BarChart } from '@/components/ui/bar-chart';
@@ -96,134 +95,126 @@ export default function SleepScreen() {
       <Screen>
         {/* Analytics first, form second — this screen is for reading your
             sleep, not for filling in a nightly form. */}
-        <Animated.View entering={FadeInDown.duration(300)}>
-          <Card raised style={styles.hero}>
-            <View style={styles.heroTop}>
-              <ProgressRing
-                progress={(lastNightMinutes ?? 0) / TARGET_MINUTES}
-                size={92}
-                strokeWidth={7}
-                color={Domain.sleep}>
-                <ThemedText type="metricSmall">
-                  {lastNightMinutes != null ? formatDuration(lastNightMinutes) : '—'}
-                </ThemedText>
-              </ProgressRing>
-              <View style={styles.heroCopy}>
-                <ThemedText type="label" themeColor="textTertiary">
-                  Last night
-                </ThemedText>
-                <ThemedText type="subtitle">
-                  {lastNightMinutes == null
-                    ? 'Not logged'
-                    : lastNightMinutes >= TARGET_MINUTES
-                      ? 'On target'
-                      : `${formatDuration(TARGET_MINUTES - lastNightMinutes)} short`}
-                </ThemedText>
-                <ThemedText type="small" themeColor="textSecondary">
-                  Target {formatDuration(TARGET_MINUTES)}
-                </ThemedText>
-              </View>
-            </View>
-
-            <View style={styles.statRow}>
-              <Stat
-                value={weekMean != null ? formatDuration(weekMean) : '—'}
-                label="7-night avg"
-                color={Domain.sleep}
-              />
-              <Stat
-                value={
-                  trendMinutes == null
-                    ? '—'
-                    : `${trendMinutes >= 0 ? '+' : '−'}${formatDuration(Math.abs(trendMinutes))}`
-                }
-                label="vs last week"
-              />
-              <Stat value={`${nightsLogged}/7`} label="Nights logged" />
-            </View>
-          </Card>
-        </Animated.View>
-
-        <Animated.View entering={FadeInDown.duration(300).delay(60)}>
-          <Section
-            title="This week"
-            trailing={
-              <ThemedText type="label" themeColor="textSecondary">
-                vs {formatDuration(TARGET_MINUTES)} target
+        <Card raised style={styles.hero}>
+          <View style={styles.heroTop}>
+            <ProgressRing
+              progress={(lastNightMinutes ?? 0) / TARGET_MINUTES}
+              size={92}
+              strokeWidth={7}
+              color={Domain.sleep}>
+              <ThemedText type="metricSmall">
+                {lastNightMinutes != null ? formatDuration(lastNightMinutes) : '—'}
               </ThemedText>
-            }>
-            <HeatStrip
-              data={week.map((d) => ({
-                value: d.minutes == null ? null : Math.min(1, d.minutes / TARGET_MINUTES),
-              }))}
-              color={Domain.sleep}
-              dayLabels={week.map((d) => format(parseISO(d.date), 'EEEEE'))}
-              summary={`${nightsLogged} of 7 nights logged, averaging ${
-                weekMean != null ? formatDuration(weekMean) : 'no data'
-              }`}
-            />
-          </Section>
-        </Animated.View>
-
-        <Animated.View entering={FadeInDown.duration(300).delay(110)}>
-          <Section title="Last 14 nights">
-            <BarChart data={chartData} formatValue={formatDuration} color={Domain.sleep} />
-          </Section>
-        </Animated.View>
-
-        <Animated.View entering={FadeInDown.duration(300).delay(160)}>
-          <Section title={todayLog ? 'Update last night' : 'Log last night'}>
-            <View style={styles.pickerRow}>
-              <View style={styles.pickerColumn}>
-                <ThemedText type="label" themeColor="textTertiary">
-                  Bed time
-                </ThemedText>
-                <TimeField value={bedTime} onChange={setBedTime} />
-              </View>
-              <View style={styles.pickerColumn}>
-                <ThemedText type="label" themeColor="textTertiary">
-                  Wake time
-                </ThemedText>
-                <TimeField value={wakeTime} onChange={setWakeTime} />
-              </View>
-            </View>
-
-            <View style={styles.qualityRow}>
+            </ProgressRing>
+            <View style={styles.heroCopy}>
               <ThemedText type="label" themeColor="textTertiary">
-                Quality
+                Last night
               </ThemedText>
-              {[1, 2, 3, 4, 5].map((star) => (
-                <Pressable
-                  key={star}
-                  onPress={() => {
-                    Haptics.selectionAsync();
-                    setQuality(star === quality ? null : star);
-                  }}
-                  hitSlop={4}
-                  accessibilityRole="button"
-                  accessibilityLabel={`Quality ${star} of 5`}>
-                  <Icon
-                    name={quality != null && star <= quality ? 'star.fill' : 'star'}
-                    size={20}
-                    tintColor={quality != null && star <= quality ? Domain.sleep : theme.textTertiary}
-                  />
-                </Pressable>
-              ))}
+              <ThemedText type="subtitle">
+                {lastNightMinutes == null
+                  ? 'Not logged'
+                  : lastNightMinutes >= TARGET_MINUTES
+                    ? 'On target'
+                    : `${formatDuration(TARGET_MINUTES - lastNightMinutes)} short`}
+              </ThemedText>
+              <ThemedText type="small" themeColor="textSecondary">
+                Target {formatDuration(TARGET_MINUTES)}
+              </ThemedText>
             </View>
+          </View>
 
-            <Button
-              title="Save"
-              onPress={() => {
-                Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-                logSleep.mutate({
-                  bedTime: { hours: bedTime.getHours(), minutes: bedTime.getMinutes() },
-                  wakeTime: { hours: wakeTime.getHours(), minutes: wakeTime.getMinutes() },
-                  quality: quality ?? undefined,
-                });
-              }}
+          <View style={styles.statRow}>
+            <Stat
+              value={weekMean != null ? formatDuration(weekMean) : '—'}
+              label="7-night avg"
+              color={Domain.sleep}
             />
-          </Section>
-        </Animated.View>
+            <Stat
+              value={
+                trendMinutes == null
+                  ? '—'
+                  : `${trendMinutes >= 0 ? '+' : '−'}${formatDuration(Math.abs(trendMinutes))}`
+              }
+              label="vs last week"
+            />
+            <Stat value={`${nightsLogged}/7`} label="Nights logged" />
+          </View>
+        </Card>
+
+        <Section
+          title="This week"
+          trailing={
+            <ThemedText type="label" themeColor="textSecondary">
+              vs {formatDuration(TARGET_MINUTES)} target
+            </ThemedText>
+          }>
+          <HeatStrip
+            data={week.map((d) => ({
+              value: d.minutes == null ? null : Math.min(1, d.minutes / TARGET_MINUTES),
+            }))}
+            color={Domain.sleep}
+            dayLabels={week.map((d) => format(parseISO(d.date), 'EEEEE'))}
+            summary={`${nightsLogged} of 7 nights logged, averaging ${
+              weekMean != null ? formatDuration(weekMean) : 'no data'
+            }`}
+          />
+        </Section>
+
+        <Section title="Last 14 nights">
+          <BarChart data={chartData} formatValue={formatDuration} color={Domain.sleep} />
+        </Section>
+
+        <Section title={todayLog ? 'Update last night' : 'Log last night'}>
+          <View style={styles.pickerRow}>
+            <View style={styles.pickerColumn}>
+              <ThemedText type="label" themeColor="textTertiary">
+                Bed time
+              </ThemedText>
+              <TimeField value={bedTime} onChange={setBedTime} />
+            </View>
+            <View style={styles.pickerColumn}>
+              <ThemedText type="label" themeColor="textTertiary">
+                Wake time
+              </ThemedText>
+              <TimeField value={wakeTime} onChange={setWakeTime} />
+            </View>
+          </View>
+
+          <View style={styles.qualityRow}>
+            <ThemedText type="label" themeColor="textTertiary">
+              Quality
+            </ThemedText>
+            {[1, 2, 3, 4, 5].map((star) => (
+              <Pressable
+                key={star}
+                onPress={() => {
+                  Haptics.selectionAsync();
+                  setQuality(star === quality ? null : star);
+                }}
+                hitSlop={4}
+                accessibilityRole="button"
+                accessibilityLabel={`Quality ${star} of 5`}>
+                <Icon
+                  name={quality != null && star <= quality ? 'star.fill' : 'star'}
+                  size={20}
+                  tintColor={quality != null && star <= quality ? Domain.sleep : theme.textTertiary}
+                />
+              </Pressable>
+            ))}
+          </View>
+
+          <Button
+            title="Save"
+            onPress={() => {
+              Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+              logSleep.mutate({
+                bedTime: { hours: bedTime.getHours(), minutes: bedTime.getMinutes() },
+                wakeTime: { hours: wakeTime.getHours(), minutes: wakeTime.getMinutes() },
+                quality: quality ?? undefined,
+              });
+            }}
+          />
+        </Section>
       </Screen>
     </>
   );

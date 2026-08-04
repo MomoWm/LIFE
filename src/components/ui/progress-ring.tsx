@@ -67,7 +67,7 @@ export function ProgressRing({
           cx={size / 2}
           cy={size / 2}
           r={radius}
-          stroke={theme.backgroundSelected}
+          stroke={theme.track}
           strokeWidth={strokeWidth}
           fill="none"
         />

@@ -5,7 +5,6 @@ import { Stack } from 'expo-router';
 import { Icon, type IconName } from '@/components/ui/icon';
 import { useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
-import Animated, { FadeInDown } from 'react-native-reanimated';
 
 import { ThemedText } from '@/components/themed-text';
 import { Button } from '@/components/ui/button';
@@ -110,126 +109,118 @@ export default function PrayerScreen() {
       <Stack.Screen options={{ title: 'Prayer' }} />
       <Screen>
         {!hasLocation ? (
-          <Animated.View entering={FadeInDown.duration(320)}>
-            <Card raised style={styles.locationCard}>
-              <Icon name="location.circle.fill" size={26} tintColor={Domain.prayer} />
-              <ThemedText type="subtitle">Set your location</ThemedText>
-              <ThemedText type="small" themeColor="textSecondary">
-                Prayer times are computed on-device from your coordinates — nothing is sent
-                anywhere.
+          <Card raised style={styles.locationCard}>
+            <Icon name="location.circle.fill" size={26} tintColor={Domain.prayer} />
+            <ThemedText type="subtitle">Set your location</ThemedText>
+            <ThemedText type="small" themeColor="textSecondary">
+              Prayer times are computed on-device from your coordinates — nothing is sent
+              anywhere.
+            </ThemedText>
+            <Button
+              title="Use my location"
+              onPress={handleUseLocation}
+              loading={locating}
+              disabled={locating}
+            />
+            {locationError ? (
+              <ThemedText type="small" themeColor="danger">
+                {locationError}
               </ThemedText>
-              <Button
-                title="Use my location"
-                onPress={handleUseLocation}
-                loading={locating}
-                disabled={locating}
-              />
-              {locationError ? (
-                <ThemedText type="small" themeColor="danger">
-                  {locationError}
-                </ThemedText>
-              ) : null}
-            </Card>
-          </Animated.View>
+            ) : null}
+          </Card>
         ) : (
-          <Animated.View entering={FadeInDown.duration(320)}>
-            <Card raised style={styles.hero}>
-              <View style={styles.heroTop}>
-                <ProgressRing
-                  progress={prayedCount / 5}
-                  size={92}
-                  strokeWidth={7}
-                  color={Domain.prayer}>
-                  <ThemedText type="metricSmall">
-                    {prayedCount}
-                    <ThemedText type="small" themeColor="textTertiary">
-                      /5
-                    </ThemedText>
+          <Card raised style={styles.hero}>
+            <View style={styles.heroTop}>
+              <ProgressRing
+                progress={prayedCount / 5}
+                size={92}
+                strokeWidth={7}
+                color={Domain.prayer}>
+                <ThemedText type="metricSmall">
+                  {prayedCount}
+                  <ThemedText type="small" themeColor="textTertiary">
+                    /5
                   </ThemedText>
-                </ProgressRing>
-                <View style={styles.heroCopy}>
-                  <ThemedText type="label" themeColor="textTertiary">
-                    {upcoming ? 'Next prayer' : 'Today complete'}
+                </ThemedText>
+              </ProgressRing>
+              <View style={styles.heroCopy}>
+                <ThemedText type="label" themeColor="textTertiary">
+                  {upcoming ? 'Next prayer' : 'Today complete'}
+                </ThemedText>
+                <ThemedText type="subtitle">
+                  {upcoming ? PRAYER_LABELS[upcoming] : 'All times passed'}
+                </ThemedText>
+                {upcoming && times ? (
+                  <ThemedText type="small" themeColor="textSecondary">
+                    {format(times[upcoming], 'h:mm a')}
+                    {profile?.location_label ? ` · ${profile.location_label}` : ''}
                   </ThemedText>
-                  <ThemedText type="subtitle">
-                    {upcoming ? PRAYER_LABELS[upcoming] : 'All times passed'}
-                  </ThemedText>
-                  {upcoming && times ? (
-                    <ThemedText type="small" themeColor="textSecondary">
-                      {format(times[upcoming], 'h:mm a')}
-                      {profile?.location_label ? ` · ${profile.location_label}` : ''}
-                    </ThemedText>
-                  ) : null}
-                </View>
+                ) : null}
               </View>
+            </View>
 
-              <View style={styles.statRow}>
-                <Stat value={String(streak ?? 0)} label="Day streak" color={Domain.prayer} />
-                <Stat
-                  value={String(qadaBalance ?? 0)}
-                  label="Qada owed"
-                  footer={
-                    (qadaBalance ?? 0) > 0 ? (
-                      <Pressable
-                        onPress={() => {
-                          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                          logMakeup.mutate('fajr');
-                        }}
-                        hitSlop={6}
-                        style={styles.makeup}>
-                        <ThemedText type="label" style={{ color: Domain.prayer }}>
-                          + Log make-up
-                        </ThemedText>
-                      </Pressable>
-                    ) : null
-                  }
-                />
-              </View>
-            </Card>
-          </Animated.View>
+            <View style={styles.statRow}>
+              <Stat value={String(streak ?? 0)} label="Day streak" color={Domain.prayer} />
+              <Stat
+                value={String(qadaBalance ?? 0)}
+                label="Qada owed"
+                footer={
+                  (qadaBalance ?? 0) > 0 ? (
+                    <Pressable
+                      onPress={() => {
+                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                        logMakeup.mutate('fajr');
+                      }}
+                      hitSlop={6}
+                      style={styles.makeup}>
+                      <ThemedText type="label" style={{ color: Domain.prayer }}>
+                        + Log make-up
+                      </ThemedText>
+                    </Pressable>
+                  ) : null
+                }
+              />
+            </View>
+          </Card>
         )}
 
         {hasLocation ? (
-          <Animated.View entering={FadeInDown.duration(320).delay(60)}>
-            <Section title="Today" contentStyle={styles.rows}>
-              {PRAYER_NAMES.map((prayer, i) => (
-                <View key={prayer}>
-                  {i > 0 ? <SectionDivider /> : null}
-                  <PrayerRow
-                    prayer={prayer}
-                    time={times ? format(times[prayer], 'h:mm a') : '—'}
-                    isNext={prayer === upcoming}
-                    status={statusFor(prayer)}
-                    onSetStatus={(status) => {
-                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                      setStatus.mutate({
-                        prayer,
-                        status: statusFor(prayer) === status ? null : status,
-                      });
-                    }}
-                  />
-                </View>
-              ))}
-            </Section>
-          </Animated.View>
+          <Section title="Today" contentStyle={styles.rows}>
+            {PRAYER_NAMES.map((prayer, i) => (
+              <View key={prayer}>
+                {i > 0 ? <SectionDivider /> : null}
+                <PrayerRow
+                  prayer={prayer}
+                  time={times ? format(times[prayer], 'h:mm a') : '—'}
+                  isNext={prayer === upcoming}
+                  status={statusFor(prayer)}
+                  onSetStatus={(status) => {
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                    setStatus.mutate({
+                      prayer,
+                      status: statusFor(prayer) === status ? null : status,
+                    });
+                  }}
+                />
+              </View>
+            ))}
+          </Section>
         ) : null}
 
-        <Animated.View entering={FadeInDown.duration(320).delay(110)}>
-          <Section
-            title="Last 7 days"
-            trailing={
-              <ThemedText type="label" themeColor="textSecondary">
-                {weekCells.reduce((sum, d) => sum + (d.prayed ?? 0), 0)}/35
-              </ThemedText>
-            }>
-            <HeatStrip
-              data={weekCells.map((d) => ({ value: d.prayed == null ? null : d.prayed / 5 }))}
-              color={Domain.prayer}
-              dayLabels={week ? week.map((d) => format(parseISO(d.date), 'EEEEE')) : undefined}
-              summary={`${weekCells.filter((d) => d.prayed === 5).length} complete days in the last 7`}
-            />
-          </Section>
-        </Animated.View>
+        <Section
+          title="Last 7 days"
+          trailing={
+            <ThemedText type="label" themeColor="textSecondary">
+              {weekCells.reduce((sum, d) => sum + (d.prayed ?? 0), 0)}/35
+            </ThemedText>
+          }>
+          <HeatStrip
+            data={weekCells.map((d) => ({ value: d.prayed == null ? null : d.prayed / 5 }))}
+            color={Domain.prayer}
+            dayLabels={week ? week.map((d) => format(parseISO(d.date), 'EEEEE')) : undefined}
+            summary={`${weekCells.filter((d) => d.prayed === 5).length} complete days in the last 7`}
+          />
+        </Section>
       </Screen>
     </>
   );

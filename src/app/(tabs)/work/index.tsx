@@ -4,7 +4,6 @@ import { Icon, type IconName } from '@/components/ui/icon';
 import { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import Animated, {
-  FadeInDown,
   useAnimatedStyle,
   useSharedValue,
   withSequence,
@@ -120,120 +119,114 @@ export default function WorkScreen() {
       />
       <Screen>
         {/* The clock is the screen's anchor while a session runs. */}
-        <Animated.View entering={FadeInDown.duration(300)}>
-          <Card raised style={styles.timerCard}>
-            <View style={styles.timerHeader}>
-              <View style={[styles.statusDot, { backgroundColor: statusColor }]} />
-              <ThemedText type="label" themeColor="textTertiary">
-                {statusLabel}
+        <Card raised style={styles.timerCard}>
+          <View style={styles.timerHeader}>
+            <View style={[styles.statusDot, { backgroundColor: statusColor }]} />
+            <ThemedText type="label" themeColor="textTertiary">
+              {statusLabel}
+            </ThemedText>
+          </View>
+
+          {session === null ? (
+            <>
+              <ThemedText type="title">Knocking hours</ThemedText>
+              <ThemedText type="small" themeColor="textSecondary">
+                Start the clock when you hit the doors. Breaks pause it.
               </ThemedText>
-            </View>
-
-            {session === null ? (
-              <>
-                <ThemedText type="title">Knocking hours</ThemedText>
-                <ThemedText type="small" themeColor="textSecondary">
-                  Start the clock when you hit the doors. Breaks pause it.
-                </ThemedText>
-                <Button
-                  title="Start work"
-                  onPress={() => {
-                    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-                    startWork.mutate();
-                  }}
-                />
-              </>
-            ) : (
-              <>
-                <ThemedText type="display">{formatElapsed(minutes)}</ThemedText>
-                <ThemedText type="label" themeColor="textTertiary">
-                  Hours worked today
-                </ThemedText>
-                {session.status !== 'ended' ? (
-                  <View style={styles.timerButtons}>
-                    <View style={styles.timerButton}>
-                      <Button
-                        title={session.status === 'on_break' ? 'Resume' : 'Break'}
-                        variant="tinted"
-                        onPress={() => {
-                          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-                          toggleBreak.mutate(session);
-                        }}
-                      />
-                    </View>
-                    <View style={styles.timerButton}>
-                      <Button
-                        title="End day"
-                        variant="destructive"
-                        onPress={() => {
-                          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
-                          endWork.mutate(session);
-                        }}
-                      />
-                    </View>
+              <Button
+                title="Start work"
+                onPress={() => {
+                  Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                  startWork.mutate();
+                }}
+              />
+            </>
+          ) : (
+            <>
+              <ThemedText type="display">{formatElapsed(minutes)}</ThemedText>
+              <ThemedText type="label" themeColor="textTertiary">
+                Hours worked today
+              </ThemedText>
+              {session.status !== 'ended' ? (
+                <View style={styles.timerButtons}>
+                  <View style={styles.timerButton}>
+                    <Button
+                      title={session.status === 'on_break' ? 'Resume' : 'Break'}
+                      variant="tinted"
+                      onPress={() => {
+                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                        toggleBreak.mutate(session);
+                      }}
+                    />
                   </View>
-                ) : null}
-              </>
-            )}
-          </Card>
-        </Animated.View>
-
-        <Animated.View entering={FadeInDown.duration(300).delay(60)}>
-          <Section title="Tap as it happens">
-            <View style={styles.counterGrid}>
-              {counters.map((counter) => (
-                <View key={counter.type} style={styles.counterCell}>
-                  <CounterTile
-                    label={counter.label}
-                    symbol={counter.symbol}
-                    count={counts[counter.type]}
-                    target={counter.target}
-                    onTap={() =>
-                      logEvent.mutate({
-                        eventType: counter.type,
-                        sessionId: isLive ? session.id : null,
-                      })
-                    }
-                  />
+                  <View style={styles.timerButton}>
+                    <Button
+                      title="End day"
+                      variant="destructive"
+                      onPress={() => {
+                        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+                        endWork.mutate(session);
+                      }}
+                    />
+                  </View>
                 </View>
-              ))}
-            </View>
-          </Section>
-        </Animated.View>
+              ) : null}
+            </>
+          )}
+        </Card>
+
+        <Section title="Tap as it happens">
+          <View style={styles.counterGrid}>
+            {counters.map((counter) => (
+              <View key={counter.type} style={styles.counterCell}>
+                <CounterTile
+                  label={counter.label}
+                  symbol={counter.symbol}
+                  count={counts[counter.type]}
+                  target={counter.target}
+                  onTap={() =>
+                    logEvent.mutate({
+                      eventType: counter.type,
+                      sessionId: isLive ? session.id : null,
+                    })
+                  }
+                />
+              </View>
+            ))}
+          </View>
+        </Section>
 
         {/* Today's conversion inline, so the funnel is visible without a
             detour — the full windowed view stays behind the header icon. */}
-        <Animated.View entering={FadeInDown.duration(300).delay(120)}>
-          <Section title="Today's funnel" onPress={() => router.push('/work/funnel')}>
-            {counts.door === 0 ? (
-              <ThemedText type="small" themeColor="textTertiary">
-                Nothing logged yet today.
-              </ThemedText>
-            ) : (
-              <View style={styles.funnel}>
-                <FunnelStep label="Doors" value={counts.door} max={counts.door} rate={null} />
-                <FunnelStep
-                  label="Interactions"
-                  value={counts.interaction}
-                  max={counts.door}
-                  rate={formatRate(rates.interactionRate)}
-                />
-                <FunnelStep
-                  label="Pitches"
-                  value={counts.pitch}
-                  max={counts.door}
-                  rate={formatRate(rates.pitchRate)}
-                />
-                <FunnelStep
-                  label="Appointments"
-                  value={counts.appointment}
-                  max={counts.door}
-                  rate={formatRate(rates.appointmentRate)}
-                />
-              </View>
-            )}
-          </Section>
-        </Animated.View>
+        <Section title="Today's funnel" onPress={() => router.push('/work/funnel')}>
+          {counts.door === 0 ? (
+            <ThemedText type="small" themeColor="textTertiary">
+              Nothing logged yet today.
+            </ThemedText>
+          ) : (
+            <View style={styles.funnel}>
+              <FunnelStep label="Doors" value={counts.door} max={counts.door} rate={null} />
+              <FunnelStep
+                label="Interactions"
+                value={counts.interaction}
+                max={counts.door}
+                rate={formatRate(rates.interactionRate)}
+              />
+              <FunnelStep
+                label="Pitches"
+                value={counts.pitch}
+                max={counts.door}
+                rate={formatRate(rates.pitchRate)}
+              />
+              <FunnelStep
+                label="Appointments"
+                value={counts.appointment}
+                max={counts.door}
+                rate={formatRate(rates.appointmentRate)}
+              />
+            </View>
+          )}
+        </Section>
       </Screen>
     </>
   );

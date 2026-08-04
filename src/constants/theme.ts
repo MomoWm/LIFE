@@ -41,6 +41,10 @@ export const Colors = {
     backgroundSelected: '#23272E',
     groupedBackground: '#101216',
     separator: 'rgba(255, 255, 255, 0.08)',
+    // The unfilled part of any progress indicator. Translucent rather than a
+    // solid tone because a fixed colour that reads correctly on the ground
+    // disappears on a raised card — which is exactly where the rings sit.
+    track: 'rgba(255, 255, 255, 0.09)',
     // Pale, heavily desaturated sage. The previous #3DBE8B was a vivid mint —
     // neon green on black is exactly the arcade signature. At this saturation
     // it reads first as "light", and only then as green.

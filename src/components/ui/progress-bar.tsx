@@ -19,7 +19,7 @@ export function ProgressBar({ progress, color, height = 6, label }: ProgressBarP
       accessible={!!label}
       accessibilityLabel={label}
       accessibilityRole="progressbar"
-      style={[styles.track, { height, borderRadius: height / 2, backgroundColor: theme.backgroundSelected }]}>
+      style={[styles.track, { height, borderRadius: height / 2, backgroundColor: theme.track }]}>
       <View
         style={{
           height,
@@ -60,7 +60,7 @@ export function SegmentedProgress({
             flex: 1,
             height,
             borderRadius: height / 2,
-            backgroundColor: i < filled ? (color ?? theme.tint) : 'rgba(255,255,255,0.10)',
+            backgroundColor: i < filled ? (color ?? theme.tint) : theme.track,
           }}
         />
       ))}

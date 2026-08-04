@@ -1,3 +1,4 @@
+import { BottomTabBarHeightContext } from '@react-navigation/bottom-tabs';
 import { HeaderHeightContext } from '@react-navigation/elements';
 import type { PropsWithChildren } from 'react';
 import { Children, useContext } from 'react';
@@ -43,6 +44,9 @@ export function useIsWide() {
  */
 export function Screen({ children, contentStyle }: ScreenProps) {
   const headerHeight = useContext(HeaderHeightContext) ?? 0;
+  // The tab bar floats over the scene as glass, so its height has to be paid
+  // for in content padding or the last row sits permanently underneath it.
+  const tabBarHeight = useContext(BottomTabBarHeightContext) ?? 0;
   const insets = useSafeAreaInsets();
   const isWide = useIsWide();
   const reduceMotion = useReducedMotion();
@@ -64,6 +68,7 @@ export function Screen({ children, contentStyle }: ScreenProps) {
         styles.outer,
         isWide && styles.outerWide,
         topPad > 0 && { paddingTop: topPad },
+        { paddingBottom: tabBarHeight + Spacing.six },
       ]}>
       {/* Capped and centred so an iPad doesn't stretch a phone layout across
           1000pt of width — long measures and marooned controls are what make a

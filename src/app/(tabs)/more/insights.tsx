@@ -1,7 +1,6 @@
 import { format, parseISO } from 'date-fns';
 import { Stack } from 'expo-router';
 import { StyleSheet, View } from 'react-native';
-import Animated, { FadeInDown } from 'react-native-reanimated';
 
 import { ThemedText } from '@/components/themed-text';
 import { BarChart } from '@/components/ui/bar-chart';
@@ -45,54 +44,48 @@ export default function InsightsScreen() {
     <>
       <Stack.Screen options={{ title: 'Insights' }} />
       <Screen>
-        <Animated.View entering={FadeInDown.duration(300)}>
-          <Section title="Score">
-            <View style={styles.statRow}>
-              <Stat
-                value={avg7 != null ? String(Math.round(avg7 * 100)) : '—'}
-                label="7-day avg"
-                size="large"
-                color={Domain.routine}
-              />
-              <Stat
-                value={best ? String(Math.round(best.score * 100)) : '—'}
-                label="Best day"
-                unit={best ? format(parseISO(best.date), 'MMM d') : undefined}
-                size="large"
-              />
-            </View>
-          </Section>
-        </Animated.View>
+        <Section title="Score">
+          <View style={styles.statRow}>
+            <Stat
+              value={avg7 != null ? String(Math.round(avg7 * 100)) : '—'}
+              label="7-day avg"
+              size="large"
+              color={Domain.routine}
+            />
+            <Stat
+              value={best ? String(Math.round(best.score * 100)) : '—'}
+              label="Best day"
+              unit={best ? format(parseISO(best.date), 'MMM d') : undefined}
+              size="large"
+            />
+          </View>
+        </Section>
 
-        <Animated.View entering={FadeInDown.duration(300).delay(60)}>
-          <Section title="Last 30 days">
-            {chartData.some((d) => d.value > 0) ? (
-              <BarChart data={chartData} formatValue={(v) => `${v}`} color={Domain.routine} />
-            ) : (
-              <ThemedText type="small" themeColor="textTertiary">
-                No scored days yet — your daily score saves automatically once the Today tab has
-                something to measure.
-              </ThemedText>
-            )}
-          </Section>
-        </Animated.View>
+        <Section title="Last 30 days">
+          {chartData.some((d) => d.value > 0) ? (
+            <BarChart data={chartData} formatValue={(v) => `${v}`} color={Domain.routine} />
+          ) : (
+            <ThemedText type="small" themeColor="textTertiary">
+              No scored days yet — your daily score saves automatically once the Today tab has
+              something to measure.
+            </ThemedText>
+          )}
+        </Section>
 
-        <Animated.View entering={FadeInDown.duration(300).delay(120)}>
-          <Section title="Trend">
-            {hasEnoughForTrend && trendDelta != null ? (
-              <ThemedText type="small" themeColor="textSecondary">
-                This week averaged {trendDelta >= 0 ? '+' : ''}
-                {Math.round(trendDelta * 100)} points against your 30-day average — based on{' '}
-                {scored30.length} scored day{scored30.length === 1 ? '' : 's'}.
-              </ThemedText>
-            ) : (
-              <ThemedText type="small" themeColor="textSecondary">
-                Trend comparisons need at least {MIN_SAMPLE_FOR_TREND} scored days to mean
-                anything. Keep using LIFE daily and this fills in — {scored30.length} so far.
-              </ThemedText>
-            )}
-          </Section>
-        </Animated.View>
+        <Section title="Trend">
+          {hasEnoughForTrend && trendDelta != null ? (
+            <ThemedText type="small" themeColor="textSecondary">
+              This week averaged {trendDelta >= 0 ? '+' : ''}
+              {Math.round(trendDelta * 100)} points against your 30-day average — based on{' '}
+              {scored30.length} scored day{scored30.length === 1 ? '' : 's'}.
+            </ThemedText>
+          ) : (
+            <ThemedText type="small" themeColor="textSecondary">
+              Trend comparisons need at least {MIN_SAMPLE_FOR_TREND} scored days to mean
+              anything. Keep using LIFE daily and this fills in — {scored30.length} so far.
+            </ThemedText>
+          )}
+        </Section>
       </Screen>
     </>
   );

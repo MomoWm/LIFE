@@ -1,4 +1,6 @@
+import { BlurView } from 'expo-blur';
 import { Tabs } from 'expo-router';
+import { StyleSheet } from 'react-native';
 
 import { HapticTab } from '@/components/haptic-tab';
 import { Icon, type IconName } from '@/components/ui/icon';
@@ -6,6 +8,18 @@ import { useTheme } from '@/hooks/use-theme';
 
 function TabIcon({ name, color }: { name: IconName; color: string }) {
   return <Icon name={name} size={26} tintColor={color} />;
+}
+
+/**
+ * The tab bar as glass rather than as a painted strip.
+ *
+ * An opaque bar cuts the screen off at a hard line and makes the app feel
+ * like a stack of separate pages. Letting content pass under a blurred bar
+ * keeps the surface continuous and signals that there is more below — the
+ * single clearest cue that a list is scrollable.
+ */
+function TabBarBackground() {
+  return <BlurView tint="dark" intensity={40} style={StyleSheet.absoluteFill} />;
 }
 
 export default function AppTabs() {
@@ -21,8 +35,12 @@ export default function AppTabs() {
         tabBarButton: HapticTab,
         tabBarActiveTintColor: theme.text,
         tabBarInactiveTintColor: theme.textTertiary,
+        tabBarBackground: TabBarBackground,
         tabBarStyle: {
-          backgroundColor: theme.background,
+          // Absolute so the scene extends beneath the glass; Screen adds the
+          // matching bottom padding so nothing ends up trapped under it.
+          position: 'absolute',
+          backgroundColor: 'transparent',
           borderTopColor: theme.separator,
         },
       }}>
