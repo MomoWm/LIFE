@@ -86,10 +86,19 @@ export function AmbientBackground() {
           <Stop offset="0" stopColor={b} stopOpacity={alphaB} />
           <Stop offset="1" stopColor={b} stopOpacity="0" />
         </AnimatedRadialGradient>
+        {/* Vignette. Without it the wash fills the frame evenly, which reads
+            as a coloured background; darkening the corners makes the same
+            wash read as light falling on a surface, and pulls the eye to the
+            middle of the screen where the content actually is. */}
+        <RadialGradient id="ambientVignette" cx="50%" cy="42%" r="78%">
+          <Stop offset="0.45" stopColor="#000000" stopOpacity="0" />
+          <Stop offset="1" stopColor="#000000" stopOpacity="0.5" />
+        </RadialGradient>
       </Defs>
       <Rect x="0" y="0" width="100%" height="100%" fill={Colors.dark.background} />
       <Rect x="0" y="0" width="100%" height="100%" fill="url(#ambientA)" />
       <Rect x="0" y="0" width="100%" height="100%" fill="url(#ambientB)" />
+      <Rect x="0" y="0" width="100%" height="100%" fill="url(#ambientVignette)" />
     </Svg>
   );
 }

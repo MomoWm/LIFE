@@ -7,7 +7,7 @@ import { differenceInCalendarDays, parseISO } from 'date-fns';
 import { ThemedText } from '@/components/themed-text';
 import { Card } from '@/components/ui/card';
 import { Screen } from '@/components/ui/screen';
-import { CornerRadius, Spacing } from '@/constants/theme';
+import { CornerRadius, Family, Spacing } from '@/constants/theme';
 import { todayIso } from '@/lib/dates';
 import { isQuarterEndDue } from '@/lib/reviews/cycle';
 import { useActiveGoals, useSaveGoal } from '@/hooks/use-five45';
@@ -167,7 +167,7 @@ const styles = StyleSheet.create({
   titleInput: {
     flex: 1,
     fontSize: 17,
-    fontWeight: '600',
+    fontFamily: Family.medium,
     paddingVertical: Spacing.one,
   },
   descriptionInput: {

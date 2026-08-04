@@ -51,72 +51,68 @@ export default function WorkoutScreen() {
       />
       <Screen>
         {cycleDay === null ? (
-          <Animated.View entering={FadeInDown.duration(300)}>
-            <Card style={styles.setupCard}>
-              <Icon name="dumbbell.fill" size={30} tintColor={theme.tint} />
-              <ThemedText type="subtitle" style={styles.setupTitle}>
-                Start your 8-day cycle
-              </ThemedText>
-              <ThemedText type="small" themeColor="textSecondary">
-                Chest/Shoulders/Triceps → Back/Biceps → Legs → Rest → Arms → Back & Chest → Legs →
-                Rest, repeating forever. Pick which day today is:
-              </ThemedText>
-              <View style={styles.dayPicker}>
-                {SPLIT.map((day) => (
-                  <Pressable
-                    key={day.day}
-                    onPress={() => {
-                      Haptics.selectionAsync();
-                      // Anchor the cycle so that today lands on the chosen day.
-                      const start = format(addDays(new Date(), -(day.day - 1)), 'yyyy-MM-dd');
-                      setCycleStart.mutate(start);
-                    }}
-                    style={[styles.dayChip, { backgroundColor: theme.backgroundElement }]}>
-                    <ThemedText type="smallBold">Day {day.day}</ThemedText>
-                    <ThemedText type="small" themeColor="textSecondary" numberOfLines={1}>
-                      {day.label}
-                    </ThemedText>
-                  </Pressable>
-                ))}
-              </View>
-            </Card>
-          </Animated.View>
+          <Card style={styles.setupCard}>
+            <Icon name="dumbbell.fill" size={30} tintColor={theme.tint} />
+            <ThemedText type="subtitle" style={styles.setupTitle}>
+              Start your 8-day cycle
+            </ThemedText>
+            <ThemedText type="small" themeColor="textSecondary">
+              Chest/Shoulders/Triceps → Back/Biceps → Legs → Rest → Arms → Back & Chest → Legs →
+              Rest, repeating forever. Pick which day today is:
+            </ThemedText>
+            <View style={styles.dayPicker}>
+              {SPLIT.map((day) => (
+                <Pressable
+                  key={day.day}
+                  onPress={() => {
+                    Haptics.selectionAsync();
+                    // Anchor the cycle so that today lands on the chosen day.
+                    const start = format(addDays(new Date(), -(day.day - 1)), 'yyyy-MM-dd');
+                    setCycleStart.mutate(start);
+                  }}
+                  style={[styles.dayChip, { backgroundColor: theme.backgroundElement }]}>
+                  <ThemedText type="smallBold">Day {day.day}</ThemedText>
+                  <ThemedText type="small" themeColor="textSecondary" numberOfLines={1}>
+                    {day.label}
+                  </ThemedText>
+                </Pressable>
+              ))}
+            </View>
+          </Card>
         ) : (
           <>
-            <Animated.View entering={FadeInDown.duration(300)}>
-              <Card raised style={styles.todayCard}>
-                <View style={styles.todayHeader}>
-                  <View style={styles.todayCopy}>
-                    <ThemedText type="label" themeColor="textTertiary">
-                      Day {cycleDay} of 8
-                    </ThemedText>
-                    <ThemedText type="title">{split?.label}</ThemedText>
-                  </View>
-                </View>
-
-                {/* The cycle as a loop rather than a number to hold in your
-                    head — where today sits, and that rest is coming. */}
-                <CycleStrip
-                  days={SPLIT.map((d) => ({ day: d.day, isRest: d.isRest, label: d.label }))}
-                  currentDay={cycleDay}
-                  color={Domain.training}
-                />
-                {split?.isRest ? (
-                  <ThemedText type="small" themeColor="textSecondary">
-                    Rest day — recovery is where the muscle gets built. Next up:{' '}
-                    {splitForDay((cycleDay % 8) + 1).label}.
+            <Card raised style={styles.todayCard}>
+              <View style={styles.todayHeader}>
+                <View style={styles.todayCopy}>
+                  <ThemedText type="label" themeColor="textTertiary">
+                    Day {cycleDay} of 8
                   </ThemedText>
-                ) : session ? null : (
-                  <Button
-                    title="Start session"
-                    onPress={() => {
-                      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-                      startSession.mutate({ cycleDay });
-                    }}
-                  />
-                )}
-              </Card>
-            </Animated.View>
+                  <ThemedText type="title">{split?.label}</ThemedText>
+                </View>
+              </View>
+
+              {/* The cycle as a loop rather than a number to hold in your
+                  head — where today sits, and that rest is coming. */}
+              <CycleStrip
+                days={SPLIT.map((d) => ({ day: d.day, isRest: d.isRest, label: d.label }))}
+                currentDay={cycleDay}
+                color={Domain.training}
+              />
+              {split?.isRest ? (
+                <ThemedText type="small" themeColor="textSecondary">
+                  Rest day — recovery is where the muscle gets built. Next up:{' '}
+                  {splitForDay((cycleDay % 8) + 1).label}.
+                </ThemedText>
+              ) : session ? null : (
+                <Button
+                  title="Start session"
+                  onPress={() => {
+                    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                    startSession.mutate({ cycleDay });
+                  }}
+                />
+              )}
+            </Card>
 
             {session ? <ActiveSession session={session} muscleGroups={split?.muscleGroups ?? []} /> : null}
           </>

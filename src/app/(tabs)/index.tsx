@@ -3,17 +3,17 @@ import { router } from 'expo-router';
 import { Icon, type IconName } from '@/components/ui/icon';
 import { useEffect, useRef } from 'react';
 import { StyleSheet, View } from 'react-native';
-import Animated, { FadeInDown } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
 import { Card } from '@/components/ui/card';
 import { CheckboxRow } from '@/components/ui/checkbox-row';
+import { EmptyState } from '@/components/ui/empty-state';
 import { PressableScale } from '@/components/ui/pressable-scale';
 import { ProgressBar, SegmentedProgress } from '@/components/ui/progress-bar';
 import { PulseDot } from '@/components/ui/pulse-dot';
 import { SegmentRing, type RingSegment } from '@/components/ui/segment-ring';
-import { Screen } from '@/components/ui/screen';
+import { Screen, useIsWide } from '@/components/ui/screen';
 import { Section, SectionDivider } from '@/components/ui/section';
 import { Stat } from '@/components/ui/stat';
 import { Domain, Spacing } from '@/constants/theme';
@@ -151,6 +151,7 @@ export default function TodayScreen() {
 
   // The score climbs into place rather than appearing, and the next prayer
   // counts down live instead of being a time printed once.
+  const isWide = useIsWide();
   const displayScore = Math.round(useCountUp(score * 100));
   const nextPrayerAt = upcoming && times ? times[upcoming] : null;
   const countdown = useCountdown(nextPrayerAt);
@@ -160,44 +161,51 @@ export default function TodayScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
-      <Screen>
+      {/* Home is a dashboard — its blocks are independent, so a wide screen
+          can lay them out in two columns without breaking a reading order.
+          The task-list screens deliberately don't. */}
+      <Screen wideLayout="columns">
         {/* ---- Hero: the one Card on the screen, so it reads as the anchor ---- */}
-        <Animated.View entering={FadeInDown.duration(350)}>
-          <Card raised style={styles.hero}>
-            <View style={styles.heroTop}>
-              <View style={styles.heroHeadline}>
-                <ThemedText type="label" themeColor="textTertiary">
-                  {format(now, 'EEEE, MMMM d')}
-                </ThemedText>
-                <ThemedText type="title">{greeting}</ThemedText>
-                {countdown && upcoming ? (
-                  <View style={styles.liveRow}>
-                    <PulseDot color={Domain.prayer} size={7} />
-                    <ThemedText type="small" themeColor="textSecondary">
-                      {PRAYER_LABELS[upcoming]} {countdown}
-                    </ThemedText>
-                  </View>
-                ) : null}
-              </View>
+        <Card raised style={styles.hero}>
+          <View style={styles.heroTop}>
+            <View style={styles.heroHeadline}>
+              <ThemedText type="label" themeColor="textTertiary">
+                {format(now, 'EEEE, MMMM d')}
+              </ThemedText>
+              <ThemedText type="title">{greeting}</ThemedText>
+              {countdown && upcoming ? (
+                <View style={styles.liveRow}>
+                  <PulseDot color={Domain.prayer} size={7} />
+                  <ThemedText type="small" themeColor="textSecondary">
+                    {PRAYER_LABELS[upcoming]} {countdown}
+                  </ThemedText>
+                </View>
+              ) : null}
             </View>
+          </View>
 
-            {/* One ring, one arc per category, each sized by how much it counts
-                and filled by how much is done — the whole day in a glance. */}
-            <View style={styles.ringWrap}>
-              <SegmentRing segments={ringSegments} size={168} strokeWidth={11}>
-                <ThemedText type="display" style={styles.scoreText}>
-                  {displayScore}
-                </ThemedText>
-                <ThemedText type="label" themeColor="textTertiary">
-                  Today
-                </ThemedText>
-              </SegmentRing>
+          {/* The number and the ring do different jobs, so they sit side by
+              side rather than one inside the other: the number is the
+              headline, the ring is the shape of the day. Nesting them forced
+              the ring to be huge just to give the number room, which cost
+              most of the screen to say one thing. */}
+          <View style={styles.scoreRow}>
+            <View style={styles.scoreBlock}>
+              <ThemedText type="display">{displayScore}</ThemedText>
+              <ThemedText type="label" themeColor="textTertiary">
+                Today
+              </ThemedText>
             </View>
+            <SegmentRing segments={ringSegments} size={104} strokeWidth={9} />
+          </View>
 
-            <View style={styles.legend}>
-              {breakdown.map((row) => (
-                <View key={row.key} style={styles.legendItem}>
-                  <View style={[styles.legendDot, { backgroundColor: row.color, opacity: row.applicable ? 1 : 0.25 }]} />
+          {/* Each category as a bar rather than a number, because the useful
+              question is "which one is short" — and the shortest bar answers
+              it without reading any of them. */}
+          <View style={styles.legend}>
+            {breakdown.map((row) => (
+              <View key={row.key} style={[styles.legendItem, isWide && styles.legendItemWide]}>
+                <View style={styles.legendHead}>
                   <ThemedText type="label" themeColor="textTertiary">
                     {row.label}
                   </ThemedText>
@@ -207,135 +215,142 @@ export default function TodayScreen() {
                     {row.applicable ? Math.round(row.score * 100) : '—'}
                   </ThemedText>
                 </View>
-              ))}
-            </View>
+                <ProgressBar
+                  // A category that doesn't count today is drawn as bare
+                  // track, not as a zero — scoring genuinely excludes it, and
+                  // an empty bar would read as a failure.
+                  progress={row.applicable ? row.score : 0}
+                  color={row.color}
+                  height={3}
+                  label={`${row.label} ${row.applicable ? Math.round(row.score * 100) : 'not counted today'}`}
+                />
+              </View>
+            ))}
+          </View>
 
-          </Card>
-        </Animated.View>
+        </Card>
 
         {/* ---- Streaks: bare numbers on the ground, no containers ---- */}
-        <Animated.View entering={FadeInDown.duration(350).delay(60)}>
-          <Section title="Streaks">
-            <View style={styles.streakRow}>
-              <CountingStat value={five45Streak ?? 0} label="Routine" color={Domain.routine} />
-              <CountingStat value={prayerStreak ?? 0} label="Prayer" color={Domain.prayer} />
-              <CountingStat value={retention?.stats.currentStreakDays ?? 0} label="Discipline" />
-            </View>
-          </Section>
-        </Animated.View>
+        <Section title="Streaks">
+          <View style={styles.streakRow}>
+            <CountingStat value={five45Streak ?? 0} label="Routine" color={Domain.routine} />
+            <CountingStat value={prayerStreak ?? 0} label="Prayer" color={Domain.prayer} />
+            <CountingStat value={retention?.stats.currentStreakDays ?? 0} label="Discipline" />
+          </View>
+        </Section>
 
         {/* ---- The actual work for this part of the day ---- */}
-        <Animated.View entering={FadeInDown.duration(350).delay(120)}>
-          <Section
-            title={phaseTitle}
-            trailing={
-              phaseTasks.length > 0 ? (
-                <ThemedText type="label" themeColor="textSecondary">
-                  {phaseTasks.filter((t) => five45?.completedTaskIds.has(t.id)).length}/
-                  {phaseTasks.length}
-                </ThemedText>
-              ) : null
-            }
-            onPress={() => router.push('/five45')}>
-            {phaseTasks.length === 0 ? (
-              <ThemedText type="small" themeColor="textTertiary">
-                No tasks set for today yet — add them in Routine.
+        <Section
+          title={phaseTitle}
+          trailing={
+            phaseTasks.length > 0 ? (
+              <ThemedText type="label" themeColor="textSecondary">
+                {phaseTasks.filter((t) => five45?.completedTaskIds.has(t.id)).length}/
+                {phaseTasks.length}
               </ThemedText>
-            ) : (
-              phaseTasks.map((task) => (
-                <CheckboxRow
-                  key={task.id}
-                  title={task.title}
-                  checked={five45?.completedTaskIds.has(task.id) ?? false}
-                  onToggle={() =>
-                    toggleTask.mutate({
-                      taskId: task.id,
-                      completed: five45?.completedTaskIds.has(task.id) ?? false,
-                    })
-                  }
-                />
-              ))
-            )}
-          </Section>
-        </Animated.View>
+            ) : null
+          }
+          onPress={() => router.push('/five45')}>
+          {phaseTasks.length === 0 ? (
+            <EmptyState
+              icon="checklist"
+              color={Domain.routine}
+              title="Nothing set for today"
+              body="Build it once, it repeats on every day of this type."
+              action={{ label: 'Set it up', onPress: () => router.push('/five45/templates') }}
+            />
+          ) : (
+            phaseTasks.map((task) => (
+              <CheckboxRow
+                key={task.id}
+                title={task.title}
+                checked={five45?.completedTaskIds.has(task.id) ?? false}
+                onToggle={() =>
+                  toggleTask.mutate({
+                    taskId: task.id,
+                    completed: five45?.completedTaskIds.has(task.id) ?? false,
+                  })
+                }
+              />
+            ))
+          )}
+        </Section>
 
         {/* ---- Everything else, grouped into one section with rules between
                rows rather than four isolated cards ---- */}
-        <Animated.View entering={FadeInDown.duration(350).delay(180)}>
-          <Section title="Today at a glance">
-            <GlanceRow
-              symbol="moon.stars.fill"
-              color={Domain.prayer}
-              title="Prayer"
-              detail={
-                upcoming && times
-                  ? `${PRAYER_LABELS[upcoming]} at ${format(times[upcoming], 'h:mm a')}`
-                  : 'All prayer times have passed'
-              }
-              onPress={() => router.push('/prayer')}
-              visual={
-                <SegmentedProgress
-                  total={5}
-                  filled={prayedCount}
-                  color={Domain.prayer}
-                  label={`${prayedCount} of 5 prayers`}
-                />
-              }
-            />
-            <SectionDivider inset={44} />
-            <GlanceRow
-              symbol="briefcase.fill"
-              color={Domain.work}
-              title="Work"
-              detail={
-                work?.session == null
-                  ? 'Timer not started'
-                  : work.session.status === 'active'
-                    ? 'Clock running'
-                    : work.session.status === 'on_break'
-                      ? 'On break'
-                      : 'Day ended'
-              }
-              trailing={`${work?.counts.interaction ?? 0}/${interactionsTarget}`}
-              live={work?.session?.status === 'active'}
-              onPress={() => router.push('/work')}
-              visual={
-                <ProgressBar
-                  progress={(work?.counts.interaction ?? 0) / interactionsTarget}
-                  color={Domain.work}
-                  height={4}
-                  label={`${work?.counts.interaction ?? 0} of ${interactionsTarget} interactions`}
-                />
-              }
-            />
-            <SectionDivider inset={44} />
-            <GlanceRow
-              symbol="dumbbell.fill"
-              color={Domain.training}
-              title="Training"
-              detail={
-                split == null
-                  ? 'Cycle not set up'
-                  : split.isRest
-                    ? 'Rest day — recovery counts'
-                    : `Day ${workout?.cycleDay}: ${split.label}`
-              }
-              onPress={() => router.push('/more/workout')}
-            />
-            {!sleepLoggedToday ? (
-              <>
-                <SectionDivider inset={44} />
-                <GlanceRow
-                  symbol="moon.zzz.fill"
-                  color={Domain.sleep}
-                  title="Sleep"
-                  detail="Last night not logged"
-                  onPress={() => router.push('/more/sleep')}
-                />
-              </>
-            ) : null}
-          </Section>
-        </Animated.View>
+        <Section title="Today at a glance">
+          <GlanceRow
+            symbol="moon.stars.fill"
+            color={Domain.prayer}
+            title="Prayer"
+            detail={
+              upcoming && times
+                ? `${PRAYER_LABELS[upcoming]} at ${format(times[upcoming], 'h:mm a')}`
+                : 'All prayer times have passed'
+            }
+            onPress={() => router.push('/prayer')}
+            visual={
+              <SegmentedProgress
+                total={5}
+                filled={prayedCount}
+                color={Domain.prayer}
+                label={`${prayedCount} of 5 prayers`}
+              />
+            }
+          />
+          <SectionDivider inset={44} />
+          <GlanceRow
+            symbol="briefcase.fill"
+            color={Domain.work}
+            title="Work"
+            detail={
+              work?.session == null
+                ? 'Not started — begin when you head out'
+                : work.session.status === 'active'
+                  ? 'Clock running'
+                  : work.session.status === 'on_break'
+                    ? 'On break'
+                    : 'Day ended'
+            }
+            trailing={`${work?.counts.interaction ?? 0}/${interactionsTarget}`}
+            live={work?.session?.status === 'active'}
+            onPress={() => router.push('/work')}
+            visual={
+              <ProgressBar
+                progress={(work?.counts.interaction ?? 0) / interactionsTarget}
+                color={Domain.work}
+                height={4}
+                label={`${work?.counts.interaction ?? 0} of ${interactionsTarget} interactions`}
+              />
+            }
+          />
+          <SectionDivider inset={44} />
+          <GlanceRow
+            symbol="dumbbell.fill"
+            color={Domain.training}
+            title="Training"
+            detail={
+              split == null
+                ? 'Tell it where you are in the 8-day split'
+                : split.isRest
+                  ? 'Rest day — recovery counts'
+                  : `Day ${workout?.cycleDay}: ${split.label}`
+            }
+            onPress={() => router.push('/more/workout')}
+          />
+          {!sleepLoggedToday ? (
+            <>
+              <SectionDivider inset={44} />
+              <GlanceRow
+                symbol="moon.zzz.fill"
+                color={Domain.sleep}
+                title="Sleep"
+                detail="Last night still unlogged"
+                onPress={() => router.push('/more/sleep')}
+              />
+            </>
+          ) : null}
+        </Section>
       </Screen>
     </SafeAreaView>
   );
@@ -415,13 +430,14 @@ const styles = StyleSheet.create({
     flex: 1,
     gap: Spacing.one,
   },
-  scoreText: {
-    fontSize: 52,
-    lineHeight: 54,
-    letterSpacing: -2,
-  },
-  ringWrap: {
+  scoreRow: {
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: Spacing.four,
+  },
+  scoreBlock: {
+    gap: Spacing.one,
   },
   liveRow: {
     flexDirection: 'row',
@@ -432,20 +448,25 @@ const styles = StyleSheet.create({
   legend: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    rowGap: Spacing.two + 2,
+    rowGap: Spacing.three,
+    columnGap: Spacing.three,
   },
   legendItem: {
-    // Two per row rather than four across: at phone width four columns
-    // orphaned the last item onto its own line.
-    flexBasis: '50%',
+    // Two per row rather than four across: at phone width, four columns give
+    // each bar too little length to compare against its neighbours.
+    flexBasis: '46%',
+    flexGrow: 1,
+    gap: Spacing.one + 1,
+  },
+  legendItemWide: {
+    // The reverse problem on a tablet: at full hero width two columns stretch
+    // each bar past 400pt, which is far more length than a 0-100 value needs.
+    flexBasis: '22%',
+  },
+  legendHead: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: Spacing.one + 2,
-  },
-  legendDot: {
-    width: 7,
-    height: 7,
-    borderRadius: 4,
+    justifyContent: 'space-between',
   },
   breakdown: {
     gap: Spacing.three,

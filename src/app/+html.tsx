@@ -28,10 +28,34 @@ export default function Root({ children }: PropsWithChildren) {
         <link rel="apple-touch-icon" sizes="152x152" href="/apple-touch-icon-152.png" />
         <link rel="apple-touch-icon" sizes="167x167" href="/apple-touch-icon-167.png" />
         <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
-        {/* Charcoal ground before the bundle loads — no white flash on launch. */}
+        {/* Charcoal ground before the bundle loads — no white flash on launch —
+            plus the handful of rules that decide whether an installed PWA
+            actually fills the phone.
+
+            `overflow-x: hidden` is the one that matters most: a single element
+            even slightly wider than the viewport makes iOS Safari treat the
+            page as a wide canvas, so it zooms out to fit and the whole app
+            sits inset with a strip of ground down the side. It looks like the
+            app "doesn't fit" when really one row is a few points too wide.
+
+            `height: 100%` down through #root stops the layout collapsing to
+            content height, and `overscroll-behavior: none` kills the
+            rubber-band that reveals bare background above the top bar — the
+            single clearest tell that an installed app is really a web page. */}
         <style
           dangerouslySetInnerHTML={{
-            __html: `html, body { background-color: ${Colors.dark.background}; }`,
+            __html: `
+              html, body, #root {
+                height: 100%;
+                background-color: ${Colors.dark.background};
+              }
+              html, body {
+                margin: 0;
+                overflow-x: hidden;
+                overscroll-behavior: none;
+              }
+              #root { display: flex; flex-direction: column; }
+            `,
           }}
         />
         <script

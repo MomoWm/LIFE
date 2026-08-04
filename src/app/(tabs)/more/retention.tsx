@@ -3,7 +3,6 @@ import * as Haptics from '@/lib/haptics';
 import { Stack } from 'expo-router';
 import { Icon } from '@/components/ui/icon';
 import { Alert, StyleSheet, View } from 'react-native';
-import Animated, { FadeInDown } from 'react-native-reanimated';
 
 import { ThemedText } from '@/components/themed-text';
 import { Button } from '@/components/ui/button';
@@ -46,77 +45,67 @@ export default function RetentionScreen() {
       <Stack.Screen options={{ title: 'Discipline' }} />
       <Screen>
         {stats?.currentStreakDays === null ? (
-          <Animated.View entering={FadeInDown.duration(300)}>
-            <Card style={styles.startCard}>
-              <Icon name="bolt.shield.fill" size={32} tintColor={theme.tint} />
-              <ThemedText type="subtitle" style={styles.startTitle}>
-                Start your streak
-              </ThemedText>
-              <ThemedText type="small" themeColor="textSecondary" style={styles.startText}>
-                Day 0 starts now. The counter tracks full calendar days.
-              </ThemedText>
-              <Button
-                title="Start tracking today"
-                onPress={() => {
-                  Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-                  logEvent.mutate({ eventType: 'reset', note: 'Started tracking' });
-                }}
-              />
-            </Card>
-          </Animated.View>
+          <Card style={styles.startCard}>
+            <Icon name="bolt.shield.fill" size={32} tintColor={theme.tint} />
+            <ThemedText type="subtitle" style={styles.startTitle}>
+              Start your streak
+            </ThemedText>
+            <ThemedText type="small" themeColor="textSecondary" style={styles.startText}>
+              Day 0 starts now. The counter tracks full calendar days.
+            </ThemedText>
+            <Button
+              title="Start tracking today"
+              onPress={() => {
+                Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                logEvent.mutate({ eventType: 'reset', note: 'Started tracking' });
+              }}
+            />
+          </Card>
         ) : (
           <>
-            <Animated.View entering={FadeInDown.duration(300)}>
-              <Card raised style={styles.heroCard}>
-                <ThemedText type="display">{stats?.currentStreakDays ?? 0}</ThemedText>
-                <ThemedText type="label" themeColor="textTertiary">
-                  days strong
-                </ThemedText>
-              </Card>
-            </Animated.View>
+            <Card raised style={styles.heroCard}>
+              <ThemedText type="display">{stats?.currentStreakDays ?? 0}</ThemedText>
+              <ThemedText type="label" themeColor="textTertiary">
+                days strong
+              </ThemedText>
+            </Card>
 
-            <Animated.View entering={FadeInDown.duration(300).delay(60)}>
-              <Section title="All time">
-                <View style={styles.statRow}>
-                  <Stat
-                    value={String(stats?.bestStreakDays ?? 0)}
-                    label="Best run"
-                    unit="d"
-                    color={Domain.routine}
-                  />
-                  <Stat value={String(stats?.totalResets ?? 0)} label="Resets" />
-                </View>
-              </Section>
-            </Animated.View>
+            <Section title="All time">
+              <View style={styles.statRow}>
+                <Stat
+                  value={String(stats?.bestStreakDays ?? 0)}
+                  label="Best run"
+                  unit="d"
+                  color={Domain.routine}
+                />
+                <Stat value={String(stats?.totalResets ?? 0)} label="Resets" />
+              </View>
+            </Section>
 
-            <Animated.View entering={FadeInDown.duration(300).delay(120)}>
-              <Button title="Log a reset" variant="destructive" onPress={confirmReset} />
-            </Animated.View>
+            <Button title="Log a reset" variant="destructive" onPress={confirmReset} />
 
             {resets.length > 0 ? (
-              <Animated.View entering={FadeInDown.duration(300).delay(180)}>
-                <Section title="History" contentStyle={styles.historyList}>
-                  {resets.slice(0, 10).map((event, i) => (
-                    <View key={event.id}>
-                      {i > 0 ? <SectionDivider /> : null}
-                      <View style={styles.historyRow}>
-                        <ThemedText type="small" style={styles.historyDate}>
-                          {format(new Date(event.occurred_at), 'MMM d, yyyy')}
+              <Section title="History" contentStyle={styles.historyList}>
+                {resets.slice(0, 10).map((event, i) => (
+                  <View key={event.id}>
+                    {i > 0 ? <SectionDivider /> : null}
+                    <View style={styles.historyRow}>
+                      <ThemedText type="small" style={styles.historyDate}>
+                        {format(new Date(event.occurred_at), 'MMM d, yyyy')}
+                      </ThemedText>
+                      {event.note ? (
+                        <ThemedText
+                          type="small"
+                          themeColor="textTertiary"
+                          numberOfLines={1}
+                          style={styles.historyNote}>
+                          {event.note}
                         </ThemedText>
-                        {event.note ? (
-                          <ThemedText
-                            type="small"
-                            themeColor="textTertiary"
-                            numberOfLines={1}
-                            style={styles.historyNote}>
-                            {event.note}
-                          </ThemedText>
-                        ) : null}
-                      </View>
+                      ) : null}
                     </View>
-                  ))}
-                </Section>
-              </Animated.View>
+                  </View>
+                ))}
+              </Section>
             ) : null}
           </>
         )}

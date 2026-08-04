@@ -7,7 +7,7 @@ import Svg, { Circle, Path } from 'react-native-svg';
 import { ThemedText } from '@/components/themed-text';
 import { Card } from '@/components/ui/card';
 import { Screen } from '@/components/ui/screen';
-import { Spacing } from '@/constants/theme';
+import { Family, Spacing } from '@/constants/theme';
 import { useExerciseProgress, type ExercisePoint } from '@/hooks/use-workout';
 import { useTheme } from '@/hooks/use-theme';
 
@@ -106,7 +106,7 @@ const styles = StyleSheet.create({
   statValue: {
     fontSize: 24,
     lineHeight: 30,
-    fontWeight: '700',
+    fontFamily: Family.bold,
     fontVariant: ['tabular-nums'],
   },
   chartCard: {

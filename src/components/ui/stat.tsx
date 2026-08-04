@@ -76,6 +76,13 @@ export function StatPanel({ value, label, unit, color, footer, style }: StatProp
 const styles = StyleSheet.create({
   stat: {
     gap: Spacing.half,
+    // Stats are almost always laid out in a row, and without these the row
+    // can't shrink them: a long label or a three-digit value pushes the last
+    // stat off the side of the screen instead of wrapping. `minWidth: 0` is
+    // the half that's easy to miss — flex items default to their content's
+    // minimum width, so flexShrink alone doesn't let text reflow.
+    flexShrink: 1,
+    minWidth: 0,
   },
   panel: {
     flex: 1,
