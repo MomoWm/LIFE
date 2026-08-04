@@ -13,7 +13,7 @@ import { PressableScale } from '@/components/ui/pressable-scale';
 import { ProgressBar, SegmentedProgress } from '@/components/ui/progress-bar';
 import { PulseDot } from '@/components/ui/pulse-dot';
 import { SegmentRing, type RingSegment } from '@/components/ui/segment-ring';
-import { Screen } from '@/components/ui/screen';
+import { Screen, useIsWide } from '@/components/ui/screen';
 import { Section, SectionDivider } from '@/components/ui/section';
 import { Stat } from '@/components/ui/stat';
 import { Domain, Spacing } from '@/constants/theme';
@@ -151,6 +151,7 @@ export default function TodayScreen() {
 
   // The score climbs into place rather than appearing, and the next prayer
   // counts down live instead of being a time printed once.
+  const isWide = useIsWide();
   const displayScore = Math.round(useCountUp(score * 100));
   const nextPrayerAt = upcoming && times ? times[upcoming] : null;
   const countdown = useCountdown(nextPrayerAt);
@@ -160,7 +161,10 @@ export default function TodayScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
-      <Screen>
+      {/* Home is a dashboard — its blocks are independent, so a wide screen
+          can lay them out in two columns without breaking a reading order.
+          The task-list screens deliberately don't. */}
+      <Screen wideLayout="columns">
         {/* ---- Hero: the one Card on the screen, so it reads as the anchor ---- */}
         <Card raised style={styles.hero}>
           <View style={styles.heroTop}>
@@ -200,7 +204,7 @@ export default function TodayScreen() {
               it without reading any of them. */}
           <View style={styles.legend}>
             {breakdown.map((row) => (
-              <View key={row.key} style={styles.legendItem}>
+              <View key={row.key} style={[styles.legendItem, isWide && styles.legendItemWide]}>
                 <View style={styles.legendHead}>
                   <ThemedText type="label" themeColor="textTertiary">
                     {row.label}
@@ -453,6 +457,11 @@ const styles = StyleSheet.create({
     flexBasis: '46%',
     flexGrow: 1,
     gap: Spacing.one + 1,
+  },
+  legendItemWide: {
+    // The reverse problem on a tablet: at full hero width two columns stretch
+    // each bar past 400pt, which is far more length than a 0-100 value needs.
+    flexBasis: '22%',
   },
   legendHead: {
     flexDirection: 'row',

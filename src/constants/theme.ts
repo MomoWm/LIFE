@@ -206,3 +206,10 @@ export const BottomTabInset = Platform.select({ ios: 50, android: 80 }) ?? 0;
  * page should look composed and deliberately narrow on a tablet, not filled.
  */
 export const MaxContentWidth = 620;
+
+/**
+ * The cap when a wide screen goes two-column. Two columns of roughly the
+ * single-column measure, plus the gutter between them — capping a two-column
+ * layout at the one-column width would just squeeze both halves.
+ */
+export const WideColumnWidth = 1000;
