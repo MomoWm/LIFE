@@ -15,6 +15,9 @@ export default function AppTabs() {
     <Tabs
       screenOptions={{
         headerShown: false,
+        // The tab navigator paints an opaque scene by default, which covers
+        // the ambient wash mounted beneath it in the tabs layout.
+        sceneStyle: { backgroundColor: 'transparent' },
         tabBarButton: HapticTab,
         tabBarActiveTintColor: theme.text,
         tabBarInactiveTintColor: theme.textTertiary,

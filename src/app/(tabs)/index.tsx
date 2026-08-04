@@ -2,16 +2,18 @@ import { format } from 'date-fns';
 import { router } from 'expo-router';
 import { Icon, type IconName } from '@/components/ui/icon';
 import { useEffect, useRef } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
 import { Card } from '@/components/ui/card';
 import { CheckboxRow } from '@/components/ui/checkbox-row';
+import { PressableScale } from '@/components/ui/pressable-scale';
 import { ProgressBar, SegmentedProgress } from '@/components/ui/progress-bar';
-import { ProgressRing } from '@/components/ui/progress-ring';
-import { Screen, useIsWide } from '@/components/ui/screen';
+import { PulseDot } from '@/components/ui/pulse-dot';
+import { SegmentRing, type RingSegment } from '@/components/ui/segment-ring';
+import { Screen } from '@/components/ui/screen';
 import { Section, SectionDivider } from '@/components/ui/section';
 import { Stat } from '@/components/ui/stat';
 import { Domain, Spacing } from '@/constants/theme';
@@ -24,6 +26,8 @@ import { useFive45Streak, useFive45Today, useToggleTask } from '@/hooks/use-five
 import { usePrayerStreak, usePrayerToday } from '@/hooks/use-prayer';
 import { useProfile } from '@/hooks/use-profile';
 import { useRetention } from '@/hooks/use-retention';
+import { useCountUp } from '@/hooks/use-count-up';
+import { useCountdown } from '@/hooks/use-countdown';
 import { useSaveTodayScore } from '@/hooks/use-score-history';
 import { useSleepLogs } from '@/hooks/use-sleep';
 import { useTheme } from '@/hooks/use-theme';
@@ -31,8 +35,6 @@ import { useWorkTargets, useWorkToday } from '@/hooks/use-work';
 import { useWorkoutToday } from '@/hooks/use-workout';
 
 export default function TodayScreen() {
-  const theme = useTheme();
-  const isWide = useIsWide();
   const now = new Date();
   const phase = todayPhase(now);
 
@@ -129,11 +131,29 @@ export default function TodayScreen() {
   ].map((row) => {
     const component = components.find((c) => c.key === row.key);
     // Categories that don't apply today (a rest day, an unconfigured tracker)
-    // are still listed, marked with a dash rather than a zero. They are
-    // genuinely excluded from the score — showing them as 0% would read as
-    // failure, and hiding them entirely leaves the hero looking half-built.
-    return { ...row, applicable: component?.applicable ?? false, score: component?.score ?? 0 };
+    // keep their place but read as empty track — they are genuinely excluded
+    // from scoring, and a 0% arc would read as failure.
+    return {
+      ...row,
+      applicable: component?.applicable ?? false,
+      score: component?.score ?? 0,
+      weight: component?.weight ?? 1,
+    };
   });
+
+  const ringSegments: RingSegment[] = breakdown.map((row) => ({
+    key: row.label,
+    weight: row.weight,
+    score: row.score,
+    color: row.color,
+    applicable: row.applicable,
+  }));
+
+  // The score climbs into place rather than appearing, and the next prayer
+  // counts down live instead of being a time printed once.
+  const displayScore = Math.round(useCountUp(score * 100));
+  const nextPrayerAt = upcoming && times ? times[upcoming] : null;
+  const countdown = useCountdown(nextPrayerAt);
 
   const phaseTasks = phase === 'evening' ? eodTasks : wakeTasks;
   const phaseTitle = phase === 'evening' ? 'Non-negotiables' : 'Morning 5';
@@ -150,40 +170,46 @@ export default function TodayScreen() {
                   {format(now, 'EEEE, MMMM d')}
                 </ThemedText>
                 <ThemedText type="title">{greeting}</ThemedText>
-              </View>
-              <ProgressRing progress={score} size={104} strokeWidth={7} color={theme.tint}>
-                <ThemedText type="display" style={styles.scoreText}>
-                  {Math.round(score * 100)}
-                </ThemedText>
-              </ProgressRing>
-            </View>
-
-            <View style={[styles.breakdown, isWide && styles.breakdownWide]}>
-              {breakdown.map((row) => (
-                <View key={row.key} style={styles.breakdownRow}>
-                  <View style={styles.breakdownHead}>
-                    <ThemedText type="label" themeColor="textTertiary">
-                      {row.label}
-                    </ThemedText>
-                    <ThemedText
-                      type="label"
-                      themeColor={row.applicable ? 'textSecondary' : 'textTertiary'}>
-                      {row.applicable ? Math.round(row.score * 100) : '—'}
+                {countdown && upcoming ? (
+                  <View style={styles.liveRow}>
+                    <PulseDot color={Domain.prayer} size={7} />
+                    <ThemedText type="small" themeColor="textSecondary">
+                      {PRAYER_LABELS[upcoming]} {countdown}
                     </ThemedText>
                   </View>
-                  <ProgressBar
-                    progress={row.applicable ? row.score : 0}
-                    color={row.color}
-                    height={5}
-                    label={
-                      row.applicable
-                        ? `${row.label} ${Math.round(row.score * 100)} percent`
-                        : `${row.label} not counted today`
-                    }
-                  />
+                ) : null}
+              </View>
+            </View>
+
+            {/* One ring, one arc per category, each sized by how much it counts
+                and filled by how much is done — the whole day in a glance. */}
+            <View style={styles.ringWrap}>
+              <SegmentRing segments={ringSegments} size={168} strokeWidth={11}>
+                <ThemedText type="display" style={styles.scoreText}>
+                  {displayScore}
+                </ThemedText>
+                <ThemedText type="label" themeColor="textTertiary">
+                  Today
+                </ThemedText>
+              </SegmentRing>
+            </View>
+
+            <View style={styles.legend}>
+              {breakdown.map((row) => (
+                <View key={row.key} style={styles.legendItem}>
+                  <View style={[styles.legendDot, { backgroundColor: row.color, opacity: row.applicable ? 1 : 0.25 }]} />
+                  <ThemedText type="label" themeColor="textTertiary">
+                    {row.label}
+                  </ThemedText>
+                  <ThemedText
+                    type="label"
+                    themeColor={row.applicable ? 'textSecondary' : 'textTertiary'}>
+                    {row.applicable ? Math.round(row.score * 100) : '—'}
+                  </ThemedText>
                 </View>
               ))}
             </View>
+
           </Card>
         </Animated.View>
 
@@ -191,13 +217,9 @@ export default function TodayScreen() {
         <Animated.View entering={FadeInDown.duration(350).delay(60)}>
           <Section title="Streaks">
             <View style={styles.streakRow}>
-              <Stat value={String(five45Streak ?? 0)} label="Routine" unit="d" color={Domain.routine} />
-              <Stat value={String(prayerStreak ?? 0)} label="Prayer" unit="d" color={Domain.prayer} />
-              <Stat
-                value={String(retention?.stats.currentStreakDays ?? 0)}
-                label="Discipline"
-                unit="d"
-              />
+              <CountingStat value={five45Streak ?? 0} label="Routine" color={Domain.routine} />
+              <CountingStat value={prayerStreak ?? 0} label="Prayer" color={Domain.prayer} />
+              <CountingStat value={retention?.stats.currentStreakDays ?? 0} label="Discipline" />
             </View>
           </Section>
         </Animated.View>
@@ -275,6 +297,7 @@ export default function TodayScreen() {
                       : 'Day ended'
               }
               trailing={`${work?.counts.interaction ?? 0}/${interactionsTarget}`}
+              live={work?.session?.status === 'active'}
               onPress={() => router.push('/work')}
               visual={
                 <ProgressBar
@@ -331,6 +354,7 @@ function GlanceRow({
   detail,
   trailing,
   visual,
+  live,
   onPress,
 }: {
   symbol: IconName;
@@ -339,15 +363,15 @@ function GlanceRow({
   detail: string;
   trailing?: string;
   visual?: React.ReactNode;
+  live?: boolean;
   onPress: () => void;
 }) {
   const theme = useTheme();
   return (
-    <Pressable onPress={onPress} accessibilityRole="button">
-      <View style={styles.glance}>
-        <View style={[styles.glanceIcon, { backgroundColor: theme.backgroundElement }]}>
-          <Icon name={symbol} size={17} tintColor={color} />
-        </View>
+    <PressableScale onPress={onPress} style={styles.glance} accessibilityLabel={`${title}. ${detail}`}>
+      <View style={[styles.glanceIcon, { backgroundColor: theme.backgroundElement }]}>
+        {live ? <PulseDot color={color} size={9} /> : <Icon name={symbol} size={17} tintColor={color} />}
+      </View>
         <View style={styles.glanceBody}>
           <View style={styles.glanceHead}>
             <ThemedText type="smallBold" style={styles.glanceTitle}>
@@ -365,9 +389,14 @@ function GlanceRow({
           </ThemedText>
           {visual ? <View style={styles.glanceVisual}>{visual}</View> : null}
         </View>
-      </View>
-    </Pressable>
+    </PressableScale>
   );
+}
+
+/** A streak figure that climbs to its value rather than appearing at it. */
+function CountingStat({ value, label, color }: { value: number; label: string; color?: string }) {
+  const shown = Math.round(useCountUp(value, 700));
+  return <Stat value={String(shown)} label={label} unit="d" color={color} />;
 }
 
 const styles = StyleSheet.create({
@@ -387,16 +416,39 @@ const styles = StyleSheet.create({
     gap: Spacing.one,
   },
   scoreText: {
-    fontSize: 40,
-    lineHeight: 42,
-    letterSpacing: -1.5,
+    fontSize: 52,
+    lineHeight: 54,
+    letterSpacing: -2,
+  },
+  ringWrap: {
+    alignItems: 'center',
+  },
+  liveRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.two,
+    marginTop: Spacing.one,
+  },
+  legend: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    rowGap: Spacing.two + 2,
+  },
+  legendItem: {
+    // Two per row rather than four across: at phone width four columns
+    // orphaned the last item onto its own line.
+    flexBasis: '50%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.one + 2,
+  },
+  legendDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 4,
   },
   breakdown: {
     gap: Spacing.three,
-  },
-  breakdownWide: {
-    flexDirection: 'row',
-    gap: Spacing.four,
   },
   breakdownRow: {
     flex: 1,

@@ -12,7 +12,6 @@ import {
 } from 'react-native';
 
 import { MaxContentWidth, Spacing, WideBreakpoint } from '@/constants/theme';
-import { useTheme } from '@/hooks/use-theme';
 
 type ScreenProps = PropsWithChildren<{
   contentStyle?: StyleProp<ViewStyle>;
@@ -35,13 +34,14 @@ export function useIsWide() {
  * native already handles it via contentInsetAdjustmentBehavior.
  */
 export function Screen({ children, contentStyle }: ScreenProps) {
-  const theme = useTheme();
   const headerHeight = useContext(HeaderHeightContext) ?? 0;
   const isWide = useIsWide();
 
   return (
     <ScrollView
-      style={{ backgroundColor: theme.background }}
+      // Transparent so the ambient wash mounted in the tabs layout shows
+      // through; the ambient layer paints the base colour itself.
+      style={styles.scroll}
       contentInsetAdjustmentBehavior="automatic"
       keyboardShouldPersistTaps="handled"
       contentContainerStyle={[
@@ -58,6 +58,9 @@ export function Screen({ children, contentStyle }: ScreenProps) {
 }
 
 const styles = StyleSheet.create({
+  scroll: {
+    backgroundColor: 'transparent',
+  },
   outer: {
     paddingHorizontal: Spacing.three,
     paddingBottom: Spacing.six,
