@@ -180,31 +180,46 @@ export default function TodayScreen() {
             </View>
           </View>
 
-          {/* One ring, one arc per category, each sized by how much it counts
-              and filled by how much is done — the whole day in a glance. */}
-          <View style={styles.ringWrap}>
-            <SegmentRing segments={ringSegments} size={168} strokeWidth={11}>
-              <ThemedText type="display" style={styles.scoreText}>
-                {displayScore}
-              </ThemedText>
+          {/* The number and the ring do different jobs, so they sit side by
+              side rather than one inside the other: the number is the
+              headline, the ring is the shape of the day. Nesting them forced
+              the ring to be huge just to give the number room, which cost
+              most of the screen to say one thing. */}
+          <View style={styles.scoreRow}>
+            <View style={styles.scoreBlock}>
+              <ThemedText type="display">{displayScore}</ThemedText>
               <ThemedText type="label" themeColor="textTertiary">
                 Today
               </ThemedText>
-            </SegmentRing>
+            </View>
+            <SegmentRing segments={ringSegments} size={104} strokeWidth={9} />
           </View>
 
+          {/* Each category as a bar rather than a number, because the useful
+              question is "which one is short" — and the shortest bar answers
+              it without reading any of them. */}
           <View style={styles.legend}>
             {breakdown.map((row) => (
               <View key={row.key} style={styles.legendItem}>
-                <View style={[styles.legendDot, { backgroundColor: row.color, opacity: row.applicable ? 1 : 0.25 }]} />
-                <ThemedText type="label" themeColor="textTertiary">
-                  {row.label}
-                </ThemedText>
-                <ThemedText
-                  type="label"
-                  themeColor={row.applicable ? 'textSecondary' : 'textTertiary'}>
-                  {row.applicable ? Math.round(row.score * 100) : '—'}
-                </ThemedText>
+                <View style={styles.legendHead}>
+                  <ThemedText type="label" themeColor="textTertiary">
+                    {row.label}
+                  </ThemedText>
+                  <ThemedText
+                    type="label"
+                    themeColor={row.applicable ? 'textSecondary' : 'textTertiary'}>
+                    {row.applicable ? Math.round(row.score * 100) : '—'}
+                  </ThemedText>
+                </View>
+                <ProgressBar
+                  // A category that doesn't count today is drawn as bare
+                  // track, not as a zero — scoring genuinely excludes it, and
+                  // an empty bar would read as a failure.
+                  progress={row.applicable ? row.score : 0}
+                  color={row.color}
+                  height={3}
+                  label={`${row.label} ${row.applicable ? Math.round(row.score * 100) : 'not counted today'}`}
+                />
               </View>
             ))}
           </View>
@@ -411,13 +426,14 @@ const styles = StyleSheet.create({
     flex: 1,
     gap: Spacing.one,
   },
-  scoreText: {
-    fontSize: 52,
-    lineHeight: 54,
-    letterSpacing: -2,
-  },
-  ringWrap: {
+  scoreRow: {
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: Spacing.four,
+  },
+  scoreBlock: {
+    gap: Spacing.one,
   },
   liveRow: {
     flexDirection: 'row',
@@ -428,20 +444,20 @@ const styles = StyleSheet.create({
   legend: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    rowGap: Spacing.two + 2,
+    rowGap: Spacing.three,
+    columnGap: Spacing.three,
   },
   legendItem: {
-    // Two per row rather than four across: at phone width four columns
-    // orphaned the last item onto its own line.
-    flexBasis: '50%',
+    // Two per row rather than four across: at phone width, four columns give
+    // each bar too little length to compare against its neighbours.
+    flexBasis: '46%',
+    flexGrow: 1,
+    gap: Spacing.one + 1,
+  },
+  legendHead: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: Spacing.one + 2,
-  },
-  legendDot: {
-    width: 7,
-    height: 7,
-    borderRadius: 4,
+    justifyContent: 'space-between',
   },
   breakdown: {
     gap: Spacing.three,
