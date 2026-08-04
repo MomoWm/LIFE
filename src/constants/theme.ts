@@ -196,4 +196,13 @@ export const Motion = {
 } as const;
 
 export const BottomTabInset = Platform.select({ ios: 50, android: 80 }) ?? 0;
-export const MaxContentWidth = 800;
+/**
+ * The widest the content column is ever allowed to get.
+ *
+ * 800 was set to stop an iPad stretching a phone layout across the full
+ * screen, but it doesn't: at 800 the measures are still too long to scan, a
+ * progress bar for a 0-100 value runs over 600pt, and the hero opens a void
+ * between the score and the ring. This is a single-column reading width — the
+ * page should look composed and deliberately narrow on a tablet, not filled.
+ */
+export const MaxContentWidth = 620;

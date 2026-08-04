@@ -14,6 +14,7 @@ import { ThemedText } from '@/components/themed-text';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { ProgressBar } from '@/components/ui/progress-bar';
+import { EmptyState } from '@/components/ui/empty-state';
 import { Screen } from '@/components/ui/screen';
 import { Section } from '@/components/ui/section';
 import { CornerRadius, Domain, Spacing } from '@/constants/theme';
@@ -200,9 +201,12 @@ export default function WorkScreen() {
             detour — the full windowed view stays behind the header icon. */}
         <Section title="Today's funnel" onPress={() => router.push('/work/funnel')}>
           {counts.door === 0 ? (
-            <ThemedText type="small" themeColor="textTertiary">
-              Nothing logged yet today.
-            </ThemedText>
+            <EmptyState
+              icon="chart.bar.fill"
+              color={Domain.work}
+              title="No doors yet"
+              body="Tap a counter above and the funnel fills in as you go."
+            />
           ) : (
             <View style={styles.funnel}>
               <FunnelStep label="Doors" value={counts.door} max={counts.door} rate={null} />
