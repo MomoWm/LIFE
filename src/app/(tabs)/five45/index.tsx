@@ -10,7 +10,7 @@ import { SegmentedProgress } from '@/components/ui/progress-bar';
 import { ProgressRing } from '@/components/ui/progress-ring';
 import { Screen } from '@/components/ui/screen';
 import { Section, SectionDivider } from '@/components/ui/section';
-import { Domain, Spacing } from '@/constants/theme';
+import { CornerRadius, Domain, Spacing } from '@/constants/theme';
 import { DAY_TYPE_LABELS } from '@/lib/dayType/dayType';
 import { useActiveGoals, useFive45Streak, useFive45Today, useToggleTask } from '@/hooks/use-five45';
 import { useTheme } from '@/hooks/use-theme';
@@ -39,8 +39,24 @@ export default function Five45Screen() {
         options={{
           title: 'Routine',
           headerRight: () => (
-            <Pressable onPress={() => router.push('/five45/templates')} hitSlop={8}>
-              <Icon name="slider.horizontal.3" size={20} tintColor={theme.textSecondary} />
+            // A bare 20pt glyph is both an unreadable label and a tap target
+            // well under the 44pt minimum — it reads as a stray mark in the
+            // corner. A bordered pill with the word in it is legible at any
+            // size and is its own hit area.
+            <Pressable
+              onPress={() => router.push('/five45/templates')}
+              accessibilityRole="button"
+              accessibilityLabel="Edit templates"
+              hitSlop={10}
+              style={({ pressed }) => [
+                styles.headerAction,
+                { borderColor: theme.separator },
+                pressed && { opacity: 0.6 },
+              ]}>
+              <Icon name="slider.horizontal.3" size={15} tintColor={theme.textSecondary} />
+              <ThemedText type="label" themeColor="textSecondary">
+                Templates
+              </ThemedText>
             </Pressable>
           ),
         }}
@@ -215,6 +231,18 @@ export default function Five45Screen() {
 }
 
 const styles = StyleSheet.create({
+  headerAction: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.one + 2,
+    minHeight: 34,
+    paddingHorizontal: Spacing.two + 2,
+    // The large-title header doesn't inset its right accessory on web, so the
+    // pill's border ran off the edge of the screen.
+    marginRight: Spacing.three,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderRadius: CornerRadius.medium,
+  },
   hero: {
     gap: Spacing.four,
   },

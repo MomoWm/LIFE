@@ -14,10 +14,10 @@ function TabIcon({ name, color }: { name: IconName; color: string }) {
 /**
  * The tab bar as glass rather than as a painted strip.
  *
- * An opaque bar cuts the screen off at a hard line and makes the app feel
- * like a stack of separate pages. Letting content pass under a blurred bar
- * keeps the surface continuous and signals that there is more below — the
- * single clearest cue that a list is scrollable.
+ * An opaque bar cuts the screen off at a hard line and makes the app feel like
+ * a stack of separate pages. A blurred bar keeps the surface continuous, and
+ * at the top of the screen it reads as chrome the content passes beneath
+ * rather than as a lid sitting on top of it.
  */
 function TabBarBackground() {
   return <BlurView tint="dark" intensity={40} style={StyleSheet.absoluteFill} />;
@@ -37,14 +37,20 @@ export default function AppTabs() {
         tabBarActiveTintColor: theme.text,
         tabBarInactiveTintColor: theme.textTertiary,
         tabBarBackground: TabBarBackground,
+        // Tabs across the top rather than the bottom. The bar takes real
+        // layout space here instead of floating: at the top it also has to own
+        // the status-bar inset, and an absolutely-positioned bar would leave
+        // the notch painted by whatever happened to be behind it.
+        tabBarPosition: 'top',
         // Navigation chrome doesn't inherit ThemedText's typography.
         tabBarLabelStyle: { fontFamily: Family.medium, letterSpacing: 0.1 },
         tabBarStyle: {
-          // Absolute so the scene extends beneath the glass; Screen adds the
-          // matching bottom padding so nothing ends up trapped under it.
-          position: 'absolute',
           backgroundColor: 'transparent',
-          borderTopColor: theme.separator,
+          // The rule belongs on the edge facing the content, which swapped
+          // ends along with the bar.
+          borderTopWidth: 0,
+          borderBottomWidth: StyleSheet.hairlineWidth,
+          borderBottomColor: theme.separator,
         },
       }}>
       <Tabs.Screen

@@ -1,4 +1,3 @@
-import { BottomTabBarHeightContext } from '@react-navigation/bottom-tabs';
 import { HeaderHeightContext } from '@react-navigation/elements';
 import type { PropsWithChildren, ReactNode } from 'react';
 import { Children, useContext } from 'react';
@@ -55,18 +54,15 @@ export function useIsWide() {
  */
 export function Screen({ children, contentStyle, wideLayout = 'single' }: ScreenProps) {
   const headerHeight = useContext(HeaderHeightContext) ?? 0;
-  // The tab bar floats over the scene as glass, so its height has to be paid
-  // for in content padding or the last row sits permanently underneath it.
-  const tabBarHeight = useContext(BottomTabBarHeightContext) ?? 0;
   const insets = useSafeAreaInsets();
   const isWide = useIsWide();
   const reduceMotion = useReducedMotion();
+  // The tab bar sits at the top of the screen and takes real layout space, so
+  // it clears the status bar on every tab by itself — the only thing left to
+  // pad for is a stack's own transparent header, and only on web, where
+  // contentInsetAdjustmentBehavior doesn't apply.
   const topPad =
-    headerHeight > 0
-      ? Platform.OS === 'web'
-        ? headerHeight + Spacing.three
-        : 0
-      : insets.top + Spacing.two;
+    headerHeight > 0 && Platform.OS === 'web' ? headerHeight + Spacing.three : Spacing.three;
 
   // `{cond && <X/>}` yields `false`, which renders nothing on its own — but
   // wrapped for animation it becomes a zero-height view that still claims a
@@ -114,7 +110,9 @@ export function Screen({ children, contentStyle, wideLayout = 'single' }: Screen
         styles.outer,
         isWide && styles.outerWide,
         topPad > 0 && { paddingTop: topPad },
-        { paddingBottom: tabBarHeight + Spacing.six },
+        // Nothing floats over the bottom any more; the home indicator still
+        // needs clearing on a gesture-nav phone.
+        { paddingBottom: insets.bottom + Spacing.six },
       ]}>
       {/* Capped and centred so an iPad doesn't stretch a phone layout across
           1000pt of width — long measures and marooned controls are what make a

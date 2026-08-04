@@ -167,12 +167,20 @@ export const Family = {
 } as const;
 
 export const Type = {
-  /** Screen-owning number: today's score, a streak count. */
-  display: { fontSize: 64, lineHeight: 64, fontFamily: Family.heavy, letterSpacing: -2.5 },
+  /**
+   * Screen-owning number: today's score, a streak count.
+   *
+   * Line heights below are all >= 1.1x the size. A display line set at exactly
+   * its font size looks tight and correct until the text wraps — then the
+   * second line's ascenders collide with the first line's descenders, which is
+   * what "the words overlap when I resize the window" is. Wrapping only
+   * happens at narrow widths, so this never shows up at one fixed viewport.
+   */
+  display: { fontSize: 64, lineHeight: 71, fontFamily: Family.heavy, letterSpacing: -2.5 },
   /** Secondary hero metric inside a card. */
-  metric: { fontSize: 40, lineHeight: 42, fontFamily: Family.bold, letterSpacing: -1.4 },
+  metric: { fontSize: 40, lineHeight: 46, fontFamily: Family.bold, letterSpacing: -1.4 },
   /** Compact metric for dense panels and inline stats. */
-  metricSmall: { fontSize: 26, lineHeight: 30, fontFamily: Family.bold, letterSpacing: -0.8 },
+  metricSmall: { fontSize: 26, lineHeight: 32, fontFamily: Family.bold, letterSpacing: -0.8 },
   title: { fontSize: 30, lineHeight: 34, fontFamily: Family.bold, letterSpacing: -0.9 },
   subtitle: { fontSize: 21, lineHeight: 27, fontFamily: Family.medium, letterSpacing: -0.45 },
   body: { fontSize: 16, lineHeight: 23, fontFamily: Family.regular, letterSpacing: -0.1 },
