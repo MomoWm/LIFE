@@ -4,6 +4,7 @@ import { StyleSheet } from 'react-native';
 
 import { HapticTab } from '@/components/haptic-tab';
 import { Icon, type IconName } from '@/components/ui/icon';
+import { Family } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
 function TabIcon({ name, color }: { name: IconName; color: string }) {
@@ -36,6 +37,8 @@ export default function AppTabs() {
         tabBarActiveTintColor: theme.text,
         tabBarInactiveTintColor: theme.textTertiary,
         tabBarBackground: TabBarBackground,
+        // Navigation chrome doesn't inherit ThemedText's typography.
+        tabBarLabelStyle: { fontFamily: Family.medium, letterSpacing: 0.1 },
         tabBarStyle: {
           // Absolute so the scene extends beneath the glass; Screen adds the
           // matching bottom padding so nothing ends up trapped under it.

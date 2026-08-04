@@ -237,7 +237,7 @@ export default function TodayScreen() {
               icon="checklist"
               color={Domain.routine}
               title="Nothing set for today"
-              body="Build the template once and it repeats on every day of this type."
+              body="Build it once, it repeats on every day of this type."
               action={{ label: 'Set it up', onPress: () => router.push('/five45/templates') }}
             />
           ) : (

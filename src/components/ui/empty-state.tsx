@@ -65,7 +65,9 @@ export function EmptyState({ icon, title, body, action, color }: EmptyStateProps
 const styles = StyleSheet.create({
   root: {
     flexDirection: 'row',
-    alignItems: 'center',
+    // Top-aligned: centring the mark against copy that wraps to three lines
+    // leaves it floating below the title it belongs to.
+    alignItems: 'flex-start',
     gap: Spacing.three,
     paddingVertical: Spacing.two,
   },

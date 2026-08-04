@@ -8,7 +8,7 @@ import { ThemedView } from '@/components/themed-view';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { TextField } from '@/components/ui/text-field';
-import { Motion, Spacing } from '@/constants/theme';
+import { Family, Motion, Spacing } from '@/constants/theme';
 import { isSupabaseConfigured } from '@/lib/supabase/client';
 import { continueAnonymously, sendSignInCode, verifySignInCode } from '@/lib/supabase/auth';
 
@@ -191,7 +191,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontSize: 76,
     lineHeight: 84,
-    fontWeight: '800',
+    fontFamily: Family.heavy,
     letterSpacing: 18,
     // Optical centering: letter-spacing trails the final glyph, nudging the
     // wordmark left — pad it back.

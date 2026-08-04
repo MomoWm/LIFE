@@ -144,20 +144,42 @@ export const WideBreakpoint = 700;
  * them. Display sizes get negative tracking (large type looks loose by
  * default); small caps get positive tracking (small type looks cramped).
  */
+/**
+ * The app's voice.
+ *
+ * Archivo — a grotesque drawn for headlines and interfaces alike: high
+ * x-height, tight apertures, near-vertical terminals. It carries weight at 64pt
+ * without turning decorative and stays legible at 11pt, which matters here
+ * because the same family has to hold a screen-filling score and an uppercase
+ * eyebrow label. The system font could do neither with any character; a system
+ * font is what an app looks like before anyone has decided how it should look.
+ *
+ * Shipped as four static weights rather than one variable file because Google
+ * only serves statics in TTF, and native needs TTF. Weight comes from the
+ * family name, never from `fontWeight`: the faces are already bold, so asking
+ * the renderer for bold on top of them produces faux-bold smearing on web.
+ */
+export const Family = {
+  regular: 'Archivo_400',
+  medium: 'Archivo_600',
+  bold: 'Archivo_700',
+  heavy: 'Archivo_800',
+} as const;
+
 export const Type = {
   /** Screen-owning number: today's score, a streak count. */
-  display: { fontSize: 64, lineHeight: 64, fontWeight: '800', letterSpacing: -2.5 },
+  display: { fontSize: 64, lineHeight: 64, fontFamily: Family.heavy, letterSpacing: -2.5 },
   /** Secondary hero metric inside a card. */
-  metric: { fontSize: 40, lineHeight: 42, fontWeight: '700', letterSpacing: -1.4 },
+  metric: { fontSize: 40, lineHeight: 42, fontFamily: Family.bold, letterSpacing: -1.4 },
   /** Compact metric for dense panels and inline stats. */
-  metricSmall: { fontSize: 26, lineHeight: 30, fontWeight: '700', letterSpacing: -0.8 },
-  title: { fontSize: 30, lineHeight: 34, fontWeight: '700', letterSpacing: -0.9 },
-  subtitle: { fontSize: 21, lineHeight: 27, fontWeight: '600', letterSpacing: -0.45 },
-  body: { fontSize: 16, lineHeight: 23, fontWeight: '400', letterSpacing: -0.1 },
-  small: { fontSize: 14, lineHeight: 20, fontWeight: '400', letterSpacing: -0.05 },
-  smallBold: { fontSize: 14, lineHeight: 20, fontWeight: '600', letterSpacing: -0.1 },
+  metricSmall: { fontSize: 26, lineHeight: 30, fontFamily: Family.bold, letterSpacing: -0.8 },
+  title: { fontSize: 30, lineHeight: 34, fontFamily: Family.bold, letterSpacing: -0.9 },
+  subtitle: { fontSize: 21, lineHeight: 27, fontFamily: Family.medium, letterSpacing: -0.45 },
+  body: { fontSize: 16, lineHeight: 23, fontFamily: Family.regular, letterSpacing: -0.1 },
+  small: { fontSize: 14, lineHeight: 20, fontFamily: Family.regular, letterSpacing: -0.05 },
+  smallBold: { fontSize: 14, lineHeight: 20, fontFamily: Family.medium, letterSpacing: -0.1 },
   /** Uppercase section/eyebrow label — the quiet structural voice. */
-  label: { fontSize: 11, lineHeight: 14, fontWeight: '700', letterSpacing: 1.3 },
+  label: { fontSize: 11, lineHeight: 14, fontFamily: Family.bold, letterSpacing: 1.3 },
 } as const;
 
 /**

@@ -122,7 +122,7 @@ export default function Five45Screen() {
                 icon="checklist"
                 color={Domain.routine}
                 title="Your morning 5"
-                body="The five things that have to happen before the day starts."
+                body="Five things, before the day starts."
                 action={{ label: 'Set them', onPress: () => router.push('/five45/templates') }}
               />
           ) : (
@@ -148,7 +148,7 @@ export default function Five45Screen() {
                 icon="target"
                 color={Domain.routine}
                 title="Four goals"
-                body="What this quarter is actually for. Everything daily serves these."
+                body="What this quarter is for."
                 action={{ label: 'Set them', onPress: () => router.push('/five45/goals') }}
               />
           ) : (
@@ -180,7 +180,7 @@ export default function Five45Screen() {
                 icon="checklist"
                 color={Domain.routine}
                 title="Your evening 5"
-                body="The five you do not go to sleep without."
+                body="Five you don't sleep without."
                 action={{ label: 'Set them', onPress: () => router.push('/five45/templates') }}
               />
           ) : (
