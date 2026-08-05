@@ -11,17 +11,24 @@ import Animated, {
 } from 'react-native-reanimated';
 import Svg, { Circle } from 'react-native-svg';
 
-import { Domain } from '@/constants/theme';
-
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
-const COUNT = 24;
-const HUES = [Domain.routine, Domain.prayer, Domain.work, Domain.training, Domain.sleep];
+const COUNT = 34;
+
+/**
+ * White, not the domain hues.
+ *
+ * Tinted motes were the wrong call twice over: at this size and opacity the
+ * colour never actually reads — a 2pt sage dot on graphite is just a grey dot —
+ * and the domain hues carry meaning everywhere else in the app, so spending
+ * them on decoration weakens them. White is the only colour that reads as
+ * light rather than as a mark, which is what these are meant to be.
+ */
+const MOTE = '#FFFFFF';
 
 type Spec = {
   x: number;
   r: number;
-  hue: string;
   opacity: number;
   duration: number;
   delay: number;
@@ -41,17 +48,25 @@ function specs(): Spec[] {
     seed = (seed * 1664525 + 1013904223) >>> 0;
     return seed / 0xffffffff;
   };
-  return Array.from({ length: COUNT }, () => ({
-    x: rand(),
-    r: 1 + rand() * 2.6,
-    hue: HUES[Math.floor(rand() * HUES.length)],
-    // Small motes stay fainter than large ones, so the field reads as having
-    // depth rather than as scattered dots on one plane.
-    opacity: 0.18 + rand() * 0.34,
-    duration: 22_000 + rand() * 26_000,
-    delay: rand() * 18_000,
-    drift: (rand() - 0.5) * 0.16,
-  }));
+  return Array.from({ length: COUNT }, () => {
+    // One roll drives both size and brightness so the two stay correlated:
+    // near motes are bigger *and* brighter, far ones smaller and fainter.
+    // Independent rolls produce big dim blobs and tiny bright pinpricks, which
+    // reads as noise rather than as depth.
+    const depth = rand();
+    return {
+      x: rand(),
+      // Measured rather than guessed: at r 1-3.7 every mote rendered, and none
+      // of them read — a 2pt dot at 40% white on graphite is below the
+      // threshold where the eye registers it as anything. Size is the lever
+      // that matters at these opacities, not count.
+      r: 1.7 + depth * 3.3,
+      opacity: 0.34 + depth * 0.5,
+      duration: 20_000 + rand() * 24_000,
+      delay: rand() * 16_000,
+      drift: (rand() - 0.5) * 0.16,
+    };
+  });
 }
 
 function Mote({ spec, height }: { spec: Spec; height: number }) {
@@ -74,7 +89,7 @@ function Mote({ spec, height }: { spec: Spec; height: number }) {
     opacity: spec.opacity * Math.min(1, Math.min(t.value, 1 - t.value) * 6),
   }));
 
-  return <AnimatedCircle r={spec.r} fill={spec.hue} animatedProps={props} />;
+  return <AnimatedCircle r={spec.r} fill={MOTE} animatedProps={props} />;
 }
 
 /**
@@ -91,7 +106,7 @@ function Mote({ spec, height }: { spec: Spec; height: number }) {
  * text through — is much worse than not having them.
  */
 export function Particles() {
-  const { height } = useWindowDimensions();
+  const { width, height } = useWindowDimensions();
   const reduceMotion = useReducedMotion();
   const field = useMemo(() => specs(), []);
 
@@ -101,6 +116,13 @@ export function Particles() {
   return (
     <Svg
       style={StyleSheet.absoluteFill}
+      // Explicit dimensions, not just an absolute-fill style. Without them
+      // react-native-svg renders an <svg> with no intrinsic size on web: the
+      // circles still lay out and still report positions, so this looks
+      // correct to anything that inspects the DOM — but the collapsed SVG
+      // viewport clips every one of them and nothing is ever painted.
+      width={width}
+      height={height}
       pointerEvents="none"
       accessibilityElementsHidden
       importantForAccessibility="no-hide-descendants">
