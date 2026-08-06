@@ -57,9 +57,9 @@ export function Screen({ children, contentStyle, wideLayout = 'single' }: Screen
   const insets = useSafeAreaInsets();
   const isWide = useIsWide();
   const reduceMotion = useReducedMotion();
-  // The tab bar sits at the top of the screen and takes real layout space, so
-  // it clears the status bar on every tab by itself — the only thing left to
-  // pad for is a stack's own transparent header, and only on web, where
+  // The tab bar is a flex sibling above the scene container, so every screen
+  // already starts below it — padding for it here would double-count. The only
+  // thing left to clear is a stack's own header, and only on web, where
   // contentInsetAdjustmentBehavior doesn't apply.
   const topPad =
     headerHeight > 0 && Platform.OS === 'web' ? headerHeight + Spacing.three : Spacing.three;

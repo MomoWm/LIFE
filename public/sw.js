@@ -17,7 +17,10 @@
 // an installed app on Vercel's "deployment not found" page, with no way back
 // short of deleting the install: the cache fallback that exists for offline use
 // was being handed the error page as its idea of the app.
-const CACHE_VERSION = 'life-v2';
+// v3: forces every existing install to drop its cache. An installed PWA that
+// had cached the pre-fix shell would otherwise keep serving it after a deploy,
+// which looks identical to the fix not working.
+const CACHE_VERSION = 'life-v3';
 const APP_SHELL = ['/', '/index.html', '/manifest.json'];
 
 /**
