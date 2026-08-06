@@ -15,6 +15,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { MaxContentWidth, Spacing, WideBreakpoint, WideColumnWidth } from '@/constants/theme';
 
+const TAB_BAR_HEIGHT = 48;
+
 type ScreenProps = PropsWithChildren<{
   contentStyle?: StyleProp<ViewStyle>;
   /**
@@ -58,11 +60,9 @@ export function Screen({ children, contentStyle, wideLayout = 'single' }: Screen
   const isWide = useIsWide();
   const reduceMotion = useReducedMotion();
   // The tab bar sits at the top of the screen and takes real layout space, so
-  // it clears the status bar on every tab by itself — the only thing left to
-  // pad for is a stack's own transparent header, and only on web, where
-  // contentInsetAdjustmentBehavior doesn't apply.
-  const topPad =
-    headerHeight > 0 && Platform.OS === 'web' ? headerHeight + Spacing.three : Spacing.three;
+  // content must always clear it. On web, the stack's own transparent header
+  // also needs padding.
+  const topPad = TAB_BAR_HEIGHT + (headerHeight > 0 && Platform.OS === 'web' ? headerHeight + Spacing.three : 0);
 
   // `{cond && <X/>}` yields `false`, which renders nothing on its own — but
   // wrapped for animation it becomes a zero-height view that still claims a
