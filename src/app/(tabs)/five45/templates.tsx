@@ -131,7 +131,10 @@ function TaskInput({
       <TextInput
         value={value}
         onChangeText={setValue}
-        onEndEditing={() => {
+        onBlur={() => {
+          // react-native-web's TextInput never fires onEndEditing — only
+          // onBlur exists there — so on web (the only platform this app
+          // currently ships on) the save handler never ran at all.
           if (value.trim() !== initial.trim()) onSave(value);
         }}
         placeholder="Add a task…"

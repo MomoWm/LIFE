@@ -102,7 +102,7 @@ function GoalSlot({
         <TextInput
           value={title}
           onChangeText={setTitle}
-          onEndEditing={commit}
+          onBlur={commit}
           placeholder={`Goal ${slot}`}
           placeholderTextColor={theme.textSecondary}
           returnKeyType="done"
@@ -112,7 +112,7 @@ function GoalSlot({
       <TextInput
         value={description}
         onChangeText={setDescription}
-        onEndEditing={commit}
+        onBlur={commit}
         placeholder="Why it matters / what done looks like…"
         placeholderTextColor={theme.textSecondary}
         multiline
