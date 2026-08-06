@@ -2,11 +2,13 @@ import { format } from 'date-fns';
 import * as Haptics from '@/lib/haptics';
 import { Stack } from 'expo-router';
 import { Icon } from '@/components/ui/icon';
-import { Alert, StyleSheet, View } from 'react-native';
+import { useState } from 'react';
+import { StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { Screen } from '@/components/ui/screen';
 import { Section, SectionDivider } from '@/components/ui/section';
 import { Stat } from '@/components/ui/stat';
@@ -18,26 +20,15 @@ export default function RetentionScreen() {
   const theme = useTheme();
   const { data } = useRetention();
   const logEvent = useLogRetentionEvent();
+  const [confirmingReset, setConfirmingReset] = useState(false);
 
   const stats = data?.stats;
   const resets = data?.events.filter((e) => e.event_type === 'reset') ?? [];
 
-  const confirmReset = () => {
-    Alert.alert(
-      'Reset streak?',
-      'This logs a relapse and restarts your count from day 0. Honesty beats a fake number.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Reset',
-          style: 'destructive',
-          onPress: () => {
-            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
-            logEvent.mutate({ eventType: 'reset' });
-          },
-        },
-      ]
-    );
+  const handleReset = () => {
+    setConfirmingReset(false);
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+    logEvent.mutate({ eventType: 'reset' });
   };
 
   return (
@@ -82,7 +73,11 @@ export default function RetentionScreen() {
               </View>
             </Section>
 
-            <Button title="Log a reset" variant="destructive" onPress={confirmReset} />
+            <Button
+              title="Log a reset"
+              variant="destructive"
+              onPress={() => setConfirmingReset(true)}
+            />
 
             {resets.length > 0 ? (
               <Section title="History" contentStyle={styles.historyList}>
@@ -110,6 +105,15 @@ export default function RetentionScreen() {
           </>
         )}
       </Screen>
+      <ConfirmDialog
+        visible={confirmingReset}
+        title="Reset streak?"
+        message="This logs a relapse and restarts your count from day 0. Honesty beats a fake number."
+        confirmLabel="Reset"
+        destructive
+        onConfirm={handleReset}
+        onCancel={() => setConfirmingReset(false)}
+      />
     </>
   );
 }
