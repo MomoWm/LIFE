@@ -62,7 +62,7 @@ export function Screen({ children, contentStyle, wideLayout = 'single' }: Screen
   // The tab bar sits at the top of the screen and takes real layout space, so
   // content must always clear it. On web, the stack's own transparent header
   // also needs padding.
-  const topPad = TAB_BAR_HEIGHT + (headerHeight > 0 && Platform.OS === 'web' ? headerHeight + Spacing.three : 0);
+  const topPad = TAB_BAR_HEIGHT + Spacing.three + (headerHeight > 0 && Platform.OS === 'web' ? headerHeight : 0);
 
   // `{cond && <X/>}` yields `false`, which renders nothing on its own — but
   // wrapped for animation it becomes a zero-height view that still claims a
