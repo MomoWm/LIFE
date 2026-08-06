@@ -15,10 +15,26 @@ export function AuthProvider({ children }: PropsWithChildren) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session);
-      setIsLoading(false);
-    });
+    // No .catch was the bug: any failure here — a flaky connection, a
+    // handoff between wifi and cellular, a momentary Supabase blip — left
+    // this promise forever unsettled. isLoading never left true, _layout's
+    // `if (!ready) return null` never let go, and the app stayed on a blank
+    // charcoal screen permanently, with no error and no way back short of
+    // force-quitting. onAuthStateChange still fires its own INITIAL_SESSION
+    // event independently, so session ends up correct either way — this only
+    // has to guarantee the loading gate actually opens.
+    supabase.auth
+      .getSession()
+      .then(({ data }) => {
+        setSession(data.session);
+      })
+      .catch(() => {
+        // Swallow — onAuthStateChange is the real source of truth for
+        // session state and will correct this shortly.
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
 
     const { data: listener } = supabase.auth.onAuthStateChange((_event, newSession) => {
       setSession(newSession);
