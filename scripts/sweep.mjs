@@ -1,247 +1,294 @@
 #!/usr/bin/env node
+//
+// Layout sweep: render the app and assert that nothing overlaps anything else.
+//
+// This exists because layout regressions in this project have never been found
+// by reading a diff — the header overlap, the iPad wrap overlap and the
+// see-through-header overlap were all found by looking at a rendered screen.
+//
+// Two lessons from the bugs that got through are built into the checks:
+//
+//   1. Check while SCROLLED, not only at rest. A pinned transparent header
+//      looks perfect at scroll 0 and prints on top of the page the moment you
+//      move. An at-rest-only sweep reported a clean pass while that bug was
+//      live on production.
+//
+//   2. Reach screens by CLICKING THE TABS, not only by deep link. Inactive tab
+//      scenes are not detached on web, so screens pile up as they are visited;
+//      a fresh deep link to each route mounts one screen and sees nothing
+//      wrong. The failure needs a walk through the tabs to appear at all.
+//
+// Usage: node scripts/sweep.mjs [baseUrl]     (default http://localhost:8081)
 
 import { chromium } from 'playwright';
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const BASE_URL = process.argv[2] ?? 'http://localhost:8081';
+const CHROMIUM = '/opt/pw-browsers/chromium';
 
-// Routes to test: authenticated screens in tabs
-const routes = [
-  { path: '/', name: 'Home', width: 402, height: 874 },
-  { path: '/five45', name: 'Five45', width: 402, height: 874 },
-  { path: '/five45/goals', name: 'Five45 Goals (headerLargeTitle: false)', width: 402, height: 874 },
-  { path: '/five45/templates', name: 'Five45 Templates (headerLargeTitle: false)', width: 402, height: 874 },
-  { path: '/five45/review', name: 'Five45 Review (headerLargeTitle: false)', width: 402, height: 874 },
-  { path: '/five45/new-cycle', name: 'Five45 New Cycle (headerLargeTitle: false)', width: 402, height: 874 },
-  { path: '/prayer', name: 'Prayer', width: 402, height: 874 },
-  { path: '/work', name: 'Work', width: 402, height: 874 },
-  { path: '/work/funnel', name: 'Work Funnel (headerLargeTitle: false)', width: 402, height: 874 },
-  { path: '/more', name: 'More', width: 402, height: 874 },
-  { path: '/more/insights', name: 'More Insights', width: 402, height: 874 },
-  { path: '/more/retention', name: 'More Retention', width: 402, height: 874 },
-  { path: '/more/sleep', name: 'More Sleep', width: 402, height: 874 },
-  { path: '/more/settings', name: 'More Settings', width: 402, height: 874 },
-  { path: '/more/settings/notifications', name: 'Settings Notifications (headerLargeTitle: false)', width: 402, height: 874 },
-  { path: '/more/settings/prayer', name: 'Settings Prayer (headerLargeTitle: false)', width: 402, height: 874 },
-  { path: '/more/workout', name: 'More Workout', width: 402, height: 874 },
-  { path: '/more/workout/history', name: 'Workout History (headerLargeTitle: false)', width: 402, height: 874 },
-  { path: '/more/workout/exercise/test-id', name: 'Workout Exercise (headerLargeTitle: false)', width: 402, height: 874 },
-  { path: '/sign-in', name: 'Sign In', width: 402, height: 874 },
-  // Tablet versions
-  { path: '/', name: 'Home (Tablet)', width: 834, height: 1112 },
-  { path: '/five45', name: 'Five45 (Tablet)', width: 834, height: 1112 },
-  { path: '/five45/goals', name: 'Five45 Goals Tablet (headerLargeTitle: false)', width: 834, height: 1112 },
-  { path: '/five45/templates', name: 'Five45 Templates Tablet (headerLargeTitle: false)', width: 834, height: 1112 },
-  { path: '/work/funnel', name: 'Work Funnel Tablet (headerLargeTitle: false)', width: 834, height: 1112 },
-  { path: '/more/settings/notifications', name: 'Settings Notifications Tablet (headerLargeTitle: false)', width: 834, height: 1112 },
-  { path: '/more/workout/history', name: 'Workout History Tablet (headerLargeTitle: false)', width: 834, height: 1112 },
+const VIEWPORTS = [
+  { name: 'phone', width: 402, height: 874 },
+  { name: 'tablet', width: 834, height: 1112 },
 ];
 
-async function checkOverlap(page) {
-  return await page.evaluate(() => {
-    const overlaps = [];
-    const elements = document.querySelectorAll('*');
+/** Every route, including the nine that override to a standard-size header. */
+const ROUTES = [
+  '/',
+  '/five45',
+  '/five45/templates',
+  '/five45/goals',
+  '/five45/review',
+  '/five45/new-cycle',
+  '/prayer',
+  '/work',
+  '/work/funnel',
+  '/more',
+  '/more/insights',
+  '/more/retention',
+  '/more/sleep',
+  '/more/settings',
+  '/more/settings/notifications',
+  '/more/settings/prayer',
+  '/more/workout',
+  '/more/workout/history',
+  '/more/workout/exercise/sweep-probe',
+  '/sign-in',
+];
 
-    // Get all text elements and buttons
-    const textElements = Array.from(elements).filter(el => {
-      if (el.offsetHeight === 0 || el.offsetWidth === 0) return false;
-      // Skip elements that are definitely UI chrome
-      if (el.classList.contains('tab-bar') || el.id === 'root' || el.id === 'main') return false;
-      const text = el.textContent?.trim();
-      return text && text.length > 0;
-    });
+// Selected by href, not by name: the accessible name of a tab includes its
+// icon glyph ("\u{F02DC}Home"), so matching on the visible label alone finds
+// nothing — and a tab-walk that silently matches nothing is how this sweep
+// reported a pass over a bug that only a tab-walk can reach.
+const TABS = [
+  ['Home', '/'],
+  ['Routine', '/five45'],
+  ['Prayer', '/prayer'],
+  ['Work', '/work'],
+  ['More', '/more'],
+];
 
-    // Check for overlaps
-    for (let i = 0; i < textElements.length; i++) {
-      for (let j = i + 1; j < textElements.length; j++) {
-        const rect1 = textElements[i].getBoundingClientRect();
-        const rect2 = textElements[j].getBoundingClientRect();
+/**
+ * Runs in the page. Finds text that visibly collides with other text.
+ *
+ * Three distinctions matter, and each one is a bug this sweep previously
+ * missed or misreported:
+ *
+ *   Leaf text only. A parent's box contains its children by definition, so
+ *   comparing containers reports an "overlap" for every nested element.
+ *
+ *   Effective opacity, walked up the tree. That is how an inactive tab scene
+ *   is hidden here — it still has boxes and still reports rects, so counting
+ *   it would report collisions the eye cannot see.
+ *
+ *   Chrome is allowed to sit over content; that is the whole design. So a
+ *   collision between chrome and content is judged on whether the chrome
+ *   actually hides what is under it. Chrome that fails to is the bug that
+ *   shipped: a header with `headerTransparent` and no background, with the
+ *   page scrolling legibly through its own title.
+ */
+const COLLECT = `(() => {
+  const alphaOf = (color) => {
+    const m = /^rgba?\\(([^)]+)\\)$/.exec(color);
+    if (!m) return 0;
+    const parts = m[1].split(',').map((n) => parseFloat(n));
+    return parts.length < 4 ? 1 : parts[3];
+  };
 
-        // Skip if either element is parent of the other
-        if (textElements[i].contains(textElements[j]) || textElements[j].contains(textElements[i])) {
-          continue;
+  const effectiveOpacity = (el) => {
+    let o = 1;
+    for (let n = el; n && n.nodeType === 1; n = n.parentElement) {
+      const s = getComputedStyle(n);
+      if (s.display === 'none' || s.visibility === 'hidden') return 0;
+      o *= parseFloat(s.opacity);
+      if (o < 0.02) return 0;
+    }
+    return o;
+  };
+
+  const intersects = (a, b) => {
+    const w = Math.min(a.right, b.right) - Math.max(a.left, b.left);
+    const h = Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top);
+    if (w <= 1 || h <= 1) return 0;
+    const areaA = (a.right - a.left) * (a.bottom - a.top);
+    const areaB = (b.right - b.left) * (b.bottom - b.top);
+    return (w * h) / Math.min(areaA, areaB);
+  };
+
+  // Chrome surfaces announce themselves by their backdrop blur: that is what
+  // ChromeBackground renders, for the tab bar and for every stack header.
+  // Each carries how much it actually obscures — blur plus the scrim over it.
+  const chrome = [];
+  for (const el of document.querySelectorAll('*')) {
+    const s = getComputedStyle(el);
+    if (!s.backdropFilter || !s.backdropFilter.includes('blur')) continue;
+    const r = el.getBoundingClientRect();
+    if (r.width < 1 || r.height < 1) continue;
+
+    // The scrim is a sibling painted over the blur, so measure the whole
+    // chrome surface: the strongest background alpha covering this box.
+    let cover = alphaOf(s.backgroundColor);
+    const parent = el.parentElement;
+    for (const layer of parent ? parent.querySelectorAll('*') : []) {
+      const lr = layer.getBoundingClientRect();
+      if (intersects(r, lr) < 0.9) continue;
+      const ls = getComputedStyle(layer);
+      cover = Math.max(cover, alphaOf(ls.backgroundColor) * effectiveOpacity(layer));
+    }
+    chrome.push({ rect: r, cover });
+  }
+
+  const inChrome = (rect) => chrome.find((c) => intersects(rect, c.rect) > 0.6);
+
+  const items = [];
+  for (const el of document.querySelectorAll('*')) {
+    const text = (el.textContent || '').trim();
+    if (!text) continue;
+    if (Array.from(el.children).some((c) => (c.textContent || '').trim())) continue;
+
+    const r = el.getBoundingClientRect();
+    if (r.width < 1 || r.height < 1) continue;
+    if (r.bottom <= 0 || r.top >= innerHeight) continue;
+    if (!effectiveOpacity(el)) continue;
+
+    items.push({ text: text.slice(0, 60), rect: r, chrome: inChrome(r) });
+  }
+
+  const overlaps = [];
+  const seeThrough = [];
+
+  for (let i = 0; i < items.length; i++) {
+    for (let j = i + 1; j < items.length; j++) {
+      const a = items[i];
+      const b = items[j];
+      if (intersects(a.rect, b.rect) < 0.2) continue;
+
+      // Both inside chrome: a tab's icon and its label share a box by design.
+      if (a.chrome && b.chrome) continue;
+
+      // One is chrome. Content passing beneath it is the intended behaviour —
+      // but only if the chrome is opaque enough to actually hide it.
+      const cover = a.chrome ?? b.chrome;
+      if (cover) {
+        if (cover.cover < 0.6) {
+          seeThrough.push({
+            a: a.text,
+            b: b.text,
+            cover: Number(cover.cover.toFixed(2)),
+          });
         }
-
-        // Check if rects overlap
-        if (!(rect1.right < rect2.left || rect1.left > rect2.right ||
-              rect1.bottom < rect2.top || rect1.top > rect2.bottom)) {
-          // Only report if centers are reasonably close (not just touching edges)
-          const dx = Math.abs((rect1.left + rect1.right) / 2 - (rect2.left + rect2.right) / 2);
-          const dy = Math.abs((rect1.top + rect1.bottom) / 2 - (rect2.top + rect2.bottom) / 2);
-
-          if (dx < Math.min(rect1.width, rect2.width) * 0.8 &&
-              dy < Math.min(rect1.height, rect2.height) * 0.8) {
-            overlaps.push({
-              el1: textElements[i].tagName + (textElements[i].className ? '.' + textElements[i].className.split(' ')[0] : ''),
-              el2: textElements[j].tagName + (textElements[j].className ? '.' + textElements[j].className.split(' ')[0] : ''),
-              text1: textElements[i].textContent?.substring(0, 50),
-              text2: textElements[j].textContent?.substring(0, 50),
-            });
-          }
-        }
+        continue;
       }
-    }
 
-    return overlaps;
-  });
+      overlaps.push({ a: a.text, b: b.text });
+    }
+  }
+
+  return {
+    overlaps,
+    seeThrough,
+    overflowX: document.documentElement.scrollWidth > document.documentElement.clientWidth,
+    scrollWidth: document.documentElement.scrollWidth,
+    clientWidth: document.documentElement.clientWidth,
+  };
+})()`;
+
+/** The app scrolls an inner element, not the document. */
+const SCROLL_TO = (frac) => `(() => {
+  const nodes = Array.from(document.querySelectorAll('*'))
+    .filter((el) => el.scrollHeight - el.clientHeight > 40);
+  const target = nodes.sort((a, b) => b.scrollHeight - a.scrollHeight)[0];
+  if (!target) return 0;
+  target.scrollTop = (target.scrollHeight - target.clientHeight) * ${frac};
+  return target.scrollTop;
+})()`;
+
+async function checkAtScrollPositions(page, label, failures) {
+  for (const [name, frac] of [['top', 0], ['middle', 0.5], ['bottom', 1]]) {
+    await page.evaluate(SCROLL_TO(frac));
+    await page.waitForTimeout(180);
+
+    const r = await page.evaluate(COLLECT);
+
+    if (r.overflowX) {
+      failures.push(`${label} @${name}: horizontal overflow ${r.scrollWidth} > ${r.clientWidth}`);
+    }
+    for (const o of r.overlaps.slice(0, 4)) {
+      failures.push(`${label} @${name}: "${o.a}" overlaps "${o.b}"`);
+    }
+    if (r.overlaps.length > 4) {
+      failures.push(`${label} @${name}: …and ${r.overlaps.length - 4} more overlaps`);
+    }
+    for (const s of r.seeThrough.slice(0, 2)) {
+      failures.push(
+        `${label} @${name}: "${s.b}" shows through chrome over "${s.a}" (cover ${s.cover})`
+      );
+    }
+    if (r.seeThrough.length > 2) {
+      failures.push(
+        `${label} @${name}: …and ${r.seeThrough.length - 2} more showing through chrome`
+      );
+    }
+  }
 }
 
-async function checkChromeOverlap(page) {
-  return await page.evaluate(() => {
-    // Find the tab bar and header
-    const tabBar = document.querySelector('[role="tablist"]');
-    let chromeBottom = 0;
-
-    if (tabBar) {
-      chromeBottom = tabBar.getBoundingClientRect().bottom;
-    }
-
-    // Find header if present
-    const header = document.querySelector('[role="banner"]');
-    if (header) {
-      chromeBottom = Math.max(chromeBottom, header.getBoundingClientRect().bottom);
-    }
-
-    if (chromeBottom === 0) return null;
-
-    // Check if any text element's top is above the chrome bottom
-    const elements = document.querySelectorAll('*');
-    const issues = [];
-
-    Array.from(elements).forEach(el => {
-      if (el.offsetHeight === 0) return;
-      const text = el.textContent?.trim();
-      if (!text || text.length === 0) return;
-
-      const rect = el.getBoundingClientRect();
-      if (rect.top > 0 && rect.top < chromeBottom && rect.top < rect.bottom - 2) {
-        issues.push({
-          text: text.substring(0, 50),
-          elementTop: rect.top,
-          chromeBottom: chromeBottom,
-          gap: chromeBottom - rect.top,
-        });
-      }
-    });
-
-    return issues.length > 0 ? { chromeBottom, issues } : null;
+async function sweepViewport(browser, viewport) {
+  const failures = [];
+  const context = await browser.newContext({
+    viewport: { width: viewport.width, height: viewport.height },
   });
-}
+  const page = await context.newPage();
 
-async function checkOverflow(page) {
-  return await page.evaluate(() => {
-    const html = document.documentElement;
-    return {
-      scrollWidth: html.scrollWidth,
-      clientWidth: html.clientWidth,
-      overflowing: html.scrollWidth > html.clientWidth,
-    };
-  });
-}
+  // Pass 1 — every route by direct navigation.
+  for (const route of ROUTES) {
+    const label = `${viewport.name} ${route}`;
+    try {
+      await page.goto(`${BASE_URL}${route}`, { waitUntil: 'load', timeout: 30000 });
+      await page.waitForTimeout(900);
+      await checkAtScrollPositions(page, label, failures);
+    } catch (err) {
+      failures.push(`${label}: ${err.message.split('\n')[0]}`);
+    }
+  }
 
-async function testRoute(browser, route, baseUrl) {
-  const page = await browser.newPage();
-  page.setViewportSize({ width: route.width, height: route.height });
-
-  const url = `${baseUrl}${route.path}`;
-  console.log(`Testing: ${route.name} (${route.width}×${route.height}) - ${url}`);
-
+  // Pass 2 — walk the tabs by clicking, which is the only way the
+  // scenes-pile-up failure shows itself.
   try {
-    await page.goto(url, { waitUntil: 'networkidle', timeout: 10000 });
+    await page.goto(`${BASE_URL}/`, { waitUntil: 'load', timeout: 30000 });
+    await page.waitForTimeout(900);
 
-    // Wait a bit for animations to settle
-    await page.waitForTimeout(500);
-
-    const overflow = await checkOverflow(page);
-    const overlaps = await checkOverlap(page);
-    const chromeOverlap = await checkChromeOverlap(page);
-
-    const issues = [];
-    if (overflow.overflowing) {
-      issues.push(`❌ OVERFLOW: ${overflow.scrollWidth}px > ${overflow.clientWidth}px`);
+    // Twice around: the failure needs tabs to have been visited already, so
+    // the second lap is the one that matters.
+    for (const [label, href] of [...TABS, ...TABS]) {
+      const tab = page.locator(`[role="tab"][href="${href}"]`).first();
+      if (!(await tab.count())) {
+        failures.push(`${viewport.name} tab-walk: no tab found for ${href}`);
+        continue;
+      }
+      await tab.click();
+      await page.waitForTimeout(650);
+      await checkAtScrollPositions(page, `${viewport.name} tab-walk→${label}`, failures);
     }
-    if (overlaps.length > 0) {
-      issues.push(`❌ TEXT OVERLAP: ${overlaps.length} overlapping elements`);
-      overlaps.forEach(o => {
-        issues.push(`   - "${o.text1}" overlaps "${o.text2}"`);
-      });
-    }
-    if (chromeOverlap) {
-      issues.push(`❌ CHROME OVERLAP: Content hidden behind header/tabbar`);
-      chromeOverlap.issues.forEach(i => {
-        issues.push(`   - "${i.text}" at top: ${i.elementTop.toFixed(1)}, chrome ends at: ${i.chromeBottom.toFixed(1)}`);
-      });
-    }
-
-    if (issues.length === 0) {
-      console.log(`✅ PASS`);
-    } else {
-      console.log(issues.join('\n'));
-    }
-
-    // Take screenshot
-    const screenshotPath = `/tmp/claude-0/-home-user-LIFE/e66c3b4e-1c0c-5820-a744-6663f5168465/scratchpad/screenshot-${route.name.replace(/\s+/g, '-').replace(/[^a-z0-9-]/gi, '')}-${route.width}.png`;
-    await page.screenshot({ path: screenshotPath, fullPage: false });
-    console.log(`  Screenshot: ${screenshotPath}`);
-
-    return {
-      route: route.name,
-      path: route.path,
-      size: `${route.width}×${route.height}`,
-      passed: issues.length === 0,
-      issues,
-    };
-  } catch (error) {
-    console.log(`⚠️  ERROR: ${error.message}`);
-    return {
-      route: route.name,
-      path: route.path,
-      size: `${route.width}×${route.height}`,
-      passed: false,
-      issues: [`ERROR: ${error.message}`],
-    };
-  } finally {
-    await page.close();
+  } catch (err) {
+    failures.push(`${viewport.name} tab-walk: ${err.message.split('\n')[0]}`);
   }
+
+  await context.close();
+  return failures;
 }
 
-async function main() {
-  const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' });
-  const baseUrl = 'http://localhost:8081';
+const browser = await chromium.launch({ executablePath: CHROMIUM });
+const failures = [];
 
-  console.log(`\n🧪 Starting screen sweep test suite...\n`);
-  console.log(`Base URL: ${baseUrl}`);
-  console.log(`Routes: ${routes.length}\n`);
-
-  const results = [];
-
-  for (const route of routes) {
-    const result = await testRoute(browser, route, baseUrl);
-    results.push(result);
-    console.log('');
-  }
-
-  await browser.close();
-
-  // Summary
-  console.log('\n📊 SUMMARY\n');
-  const passed = results.filter(r => r.passed).length;
-  const failed = results.length - passed;
-
-  console.log(`Total: ${results.length} | ✅ Passed: ${passed} | ❌ Failed: ${failed}\n`);
-
-  if (failed > 0) {
-    console.log('❌ FAILED ROUTES:\n');
-    results.filter(r => !r.passed).forEach(r => {
-      console.log(`${r.route} (${r.path}, ${r.size}):`);
-      r.issues.forEach(issue => console.log(`  ${issue}`));
-      console.log('');
-    });
-  }
-
-  process.exit(failed > 0 ? 1 : 0);
+for (const viewport of VIEWPORTS) {
+  process.stdout.write(`sweeping ${viewport.name} (${viewport.width}×${viewport.height})…\n`);
+  failures.push(...(await sweepViewport(browser, viewport)));
 }
 
-main().catch(console.error);
+await browser.close();
+
+if (failures.length) {
+  console.error(`\n${failures.length} layout failure(s):\n`);
+  for (const f of failures) console.error(`  ✗ ${f}`);
+  process.exit(1);
+}
+
+console.log('\n✓ no overlap, no overflow — all routes, both widths, scrolled and tab-walked');

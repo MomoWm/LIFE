@@ -1,5 +1,6 @@
 import type { NativeStackNavigationOptions } from '@react-navigation/native-stack';
 
+import { ChromeBackground } from '@/components/ui/chrome-background';
 import { Colors, Family } from '@/constants/theme';
 
 type Theme = typeof Colors.dark;
@@ -16,12 +17,22 @@ type Theme = typeof Colors.dark;
  * the tab bar at the other end of the screen; both title styles name the
  * app's own families, since navigation chrome does not inherit the app's
  * typography the way ThemedText does.
+ *
+ * The blur is specified twice because the two platforms take it by different
+ * routes, and neither route covers both. `headerBlurEffect` reaches only the
+ * iOS native header; on web, native-stack falls back to the JS header from
+ * `@react-navigation/elements`, which ignores that option entirely and applies
+ * `headerTransparent` literally — so the header rendered as clear glass with
+ * no glass in it, and every screen's content scrolled visibly through its own
+ * title. `headerBackground` is the hook that JS header does honour, and the
+ * iOS native header ignores it, so the two never both apply.
  */
 export function stackScreenOptions(theme: Theme): NativeStackNavigationOptions {
   return {
     headerLargeTitle: true,
     headerTransparent: true,
     headerBlurEffect: 'systemChromeMaterial',
+    headerBackground: () => <ChromeBackground />,
     headerLargeTitleShadowVisible: false,
     headerTintColor: theme.tint,
     headerLargeTitleStyle: { color: theme.text, fontFamily: Family.heavy },

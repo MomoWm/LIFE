@@ -15,8 +15,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { MaxContentWidth, Spacing, WideBreakpoint, WideColumnWidth } from '@/constants/theme';
 
-const TAB_BAR_HEIGHT = 48;
-
 type ScreenProps = PropsWithChildren<{
   contentStyle?: StyleProp<ViewStyle>;
   /**
@@ -59,10 +57,12 @@ export function Screen({ children, contentStyle, wideLayout = 'single' }: Screen
   const insets = useSafeAreaInsets();
   const isWide = useIsWide();
   const reduceMotion = useReducedMotion();
-  // The tab bar sits at the top of the screen and takes real layout space, so
-  // content must always clear it. On web, the stack's own transparent header
-  // also needs padding.
-  const topPad = TAB_BAR_HEIGHT + Spacing.three + (headerHeight > 0 && Platform.OS === 'web' ? headerHeight : 0);
+  // The tab bar is a flex sibling above the scene container, so every screen
+  // already starts below it — padding for it here would double-count. The only
+  // thing left to clear is a stack's own header, and only on web, where
+  // contentInsetAdjustmentBehavior doesn't apply.
+  const topPad =
+    headerHeight > 0 && Platform.OS === 'web' ? headerHeight + Spacing.three : Spacing.three;
 
   // `{cond && <X/>}` yields `false`, which renders nothing on its own — but
   // wrapped for animation it becomes a zero-height view that still claims a

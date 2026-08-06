@@ -1,26 +1,14 @@
-import { BlurView } from 'expo-blur';
 import { Tabs } from 'expo-router';
 import { StyleSheet } from 'react-native';
 
 import { HapticTab } from '@/components/haptic-tab';
+import { ChromeBackground } from '@/components/ui/chrome-background';
 import { Icon, type IconName } from '@/components/ui/icon';
 import { Family } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
 function TabIcon({ name, color }: { name: IconName; color: string }) {
   return <Icon name={name} size={26} tintColor={color} />;
-}
-
-/**
- * The tab bar as glass rather than as a painted strip.
- *
- * An opaque bar cuts the screen off at a hard line and makes the app feel like
- * a stack of separate pages. A blurred bar keeps the surface continuous, and
- * at the top of the screen it reads as chrome the content passes beneath
- * rather than as a lid sitting on top of it.
- */
-function TabBarBackground() {
-  return <BlurView tint="dark" intensity={40} style={StyleSheet.absoluteFill} />;
 }
 
 export default function AppTabs() {
@@ -33,10 +21,23 @@ export default function AppTabs() {
         // The tab navigator paints an opaque scene by default, which covers
         // the ambient wash mounted beneath it in the tabs layout.
         sceneStyle: { backgroundColor: 'transparent' },
+        // Not decoration — this is what hides the tabs you aren't looking at.
+        //
+        // Inactive scenes are normally detached by react-native-screens, but
+        // that library disables itself off-native, so on web every tab that has
+        // ever been visited stays mounted as an absolutely-filled view. The
+        // only thing separating them is z-order, and since the scenes are
+        // transparent (above) so the wash can show through, z-order hides
+        // nothing: Home and Routine paint over each other, word on word, and it
+        // gets worse with every tab visited. Setting an animation runs the
+        // scene interpolator, which drives unfocused scenes to opacity 0 — the
+        // one lever that hides them without giving the scenes an opaque
+        // background, which would blank the starfield behind them.
+        animation: 'fade',
         tabBarButton: HapticTab,
         tabBarActiveTintColor: theme.text,
         tabBarInactiveTintColor: theme.textTertiary,
-        tabBarBackground: TabBarBackground,
+        tabBarBackground: () => <ChromeBackground />,
         // Tabs across the top rather than the bottom. The bar takes real
         // layout space here instead of floating: at the top it also has to own
         // the status-bar inset, and an absolutely-positioned bar would leave
