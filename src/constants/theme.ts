@@ -126,12 +126,24 @@ export const CornerRadius = {
  * tint strokes, rings and small marks; they never fill a large surface, and a
  * screen shows exactly one of them.
  */
+/**
+ * Domain colors, one per life area.
+ *
+ * These carry more chroma than the rest of the palette on purpose — they are
+ * the one place saturation is allowed to do work, so that five identical grey
+ * cards become five recognizable areas of a life at a glance. The line to
+ * hold is jewel tone, not neon: each color sits at a lightness where it reads
+ * as vivid against the charcoal ground without ever competing with the
+ * near-white text sitting on top of it. Below that lightness a color goes
+ * muddy on charcoal; above it, it starts to glow like the arcade look the
+ * rest of the palette exists to avoid.
+ */
 export const Domain = {
-  routine: '#A6C1B2', // sage — completion, the base accent
-  prayer: '#A3ADC9', // muted periwinkle
-  work: '#C6AC8B', // muted bronze
-  training: '#B4A7C4', // muted heather
-  sleep: '#93AFC0', // muted slate blue
+  routine: '#3ED68F', // emerald — completion
+  prayer: '#7C8FEF', // indigo
+  work: '#E8AC54', // amber
+  training: '#B683F0', // amethyst
+  sleep: '#57A6E8', // azure
 } as const;
 
 /** Breakpoint above which layouts may use two columns (iPad and wider). */
