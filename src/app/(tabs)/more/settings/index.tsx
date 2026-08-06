@@ -1,11 +1,12 @@
 import { Stack, router } from 'expo-router';
 import { Icon } from '@/components/ui/icon';
 import { useState } from 'react';
-import { Alert, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { Section, SectionDivider } from '@/components/ui/section';
 import { ListRow } from '@/components/ui/list-row';
 import { Screen } from '@/components/ui/screen';
@@ -128,20 +129,14 @@ export default function SettingsScreen() {
   const theme = useTheme();
   const { session } = useAuth();
   const isAnonymous = session?.user.is_anonymous ?? false;
+  const [confirmingSignOut, setConfirmingSignOut] = useState(false);
 
   const handleSignOut = () => {
     if (!isAnonymous) {
       signOut();
       return;
     }
-    Alert.alert(
-      'Sign out?',
-      'This account has no email attached — signing out means there is no way back into it. Your data stays saved, but this device won’t be able to reach it again.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Sign out', style: 'destructive', onPress: () => signOut() },
-      ]
-    );
+    setConfirmingSignOut(true);
   };
 
   return (
@@ -179,6 +174,18 @@ export default function SettingsScreen() {
 
         <Button title="Sign out" variant="destructive" onPress={handleSignOut} />
       </Screen>
+      <ConfirmDialog
+        visible={confirmingSignOut}
+        title="Sign out?"
+        message="This account has no email attached — signing out means there is no way back into it. Your data stays saved, but this device won’t be able to reach it again."
+        confirmLabel="Sign out"
+        destructive
+        onConfirm={() => {
+          setConfirmingSignOut(false);
+          signOut();
+        }}
+        onCancel={() => setConfirmingSignOut(false)}
+      />
     </>
   );
 }

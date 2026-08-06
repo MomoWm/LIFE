@@ -4,7 +4,6 @@ import { ThemedText } from '@/components/themed-text';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { CornerRadius, Spacing } from '@/constants/theme';
-import { useTheme } from '@/hooks/use-theme';
 
 type ConfirmDialogProps = {
   visible: boolean;
@@ -37,8 +36,6 @@ export function ConfirmDialog({
   onCancel,
   destructive,
 }: ConfirmDialogProps) {
-  const theme = useTheme();
-
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onCancel}>
       <Pressable style={styles.backdrop} onPress={onCancel}>
