@@ -19,7 +19,7 @@ import { Screen } from '@/components/ui/screen';
 import { Section } from '@/components/ui/section';
 import { CornerRadius, Domain, Spacing } from '@/constants/theme';
 import { computeFunnel, formatRate } from '@/lib/funnel/funnel';
-import type { WorkEventType } from '@/lib/supabase/types';
+import type { WorkEventType } from '@/lib/db/types';
 import {
   useEndWork,
   useLogWorkEvent,

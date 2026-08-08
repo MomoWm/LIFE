@@ -2,27 +2,35 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useRef } from 'react';
 import { AppState } from 'react-native';
 
+import { table } from '@/lib/db/local-table';
 import { ensureNotificationPermissions, syncNotifications } from '@/lib/notifications/scheduler';
 import { queryKeys } from '@/lib/query/keys';
-import { supabase } from '@/lib/supabase/client';
-import type { NotificationPreferencesRow } from '@/lib/supabase/types';
+import type { NotificationPreferencesRow } from '@/lib/db/types';
 import { useUserId } from '@/hooks/use-five45';
 import { useProfile } from '@/hooks/use-profile';
+
+const notificationPrefs = table<NotificationPreferencesRow>('notification_preferences');
+
+const DEFAULTS: Omit<NotificationPreferencesRow, 'id' | 'updated_at'> = {
+  prayer_enabled: true,
+  five45_morning_enabled: true,
+  five45_morning_time: '06:00',
+  work_reminders_enabled: true,
+  weekly_review_enabled: true,
+  quarterly_review_enabled: true,
+};
+
+async function loadOrCreatePrefs(): Promise<NotificationPreferencesRow> {
+  const existing = await notificationPrefs.select();
+  if (existing[0]) return existing[0];
+  return notificationPrefs.insert(DEFAULTS);
+}
 
 export function useNotificationPrefs() {
   const userId = useUserId();
   return useQuery({
     queryKey: queryKeys.notificationPrefs(userId),
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('notification_preferences')
-        .select()
-        .eq('user_id', userId)
-        .maybeSingle();
-      if (error) throw error;
-      return (data as NotificationPreferencesRow | null) ?? null;
-    },
-    enabled: !!userId,
+    queryFn: loadOrCreatePrefs,
   });
 }
 
@@ -32,11 +40,8 @@ export function useUpdateNotificationPrefs() {
 
   return useMutation({
     mutationFn: async (patch: Partial<NotificationPreferencesRow>) => {
-      const { error } = await supabase
-        .from('notification_preferences')
-        .update(patch)
-        .eq('user_id', userId);
-      if (error) throw error;
+      const current = await loadOrCreatePrefs();
+      await notificationPrefs.update(current.id, patch);
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.notificationPrefs(userId) });

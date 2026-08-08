@@ -1,11 +1,21 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
+import { table } from '@/lib/db/local-table';
 import { todayIso } from '@/lib/dates';
 import { queryKeys } from '@/lib/query/keys';
 import { weekStartIso } from '@/lib/reviews/cycle';
-import { supabase } from '@/lib/supabase/client';
-import type { GoalRow, WeeklyReviewGoalCheckinRow, WeeklyReviewRow } from '@/lib/supabase/types';
+import type {
+  GoalRow,
+  QuarterlyReviewRow,
+  WeeklyReviewGoalCheckinRow,
+  WeeklyReviewRow,
+} from '@/lib/db/types';
 import { useUserId } from '@/hooks/use-five45';
+
+const weeklyReviews = table<WeeklyReviewRow>('weekly_reviews');
+const weeklyCheckins = table<WeeklyReviewGoalCheckinRow>('weekly_review_goal_checkins');
+const quarterlyReviews = table<QuarterlyReviewRow>('quarterly_reviews');
+const goalsTable = table<GoalRow>('goals');
 
 export function useThisWeeksReview() {
   const userId = useUserId();
@@ -14,19 +24,11 @@ export function useThisWeeksReview() {
   return useQuery({
     queryKey: queryKeys.weeklyReview(userId, weekStart),
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('weekly_reviews')
-        .select('*, weekly_review_goal_checkins(*)')
-        .eq('user_id', userId)
-        .eq('week_start_date', weekStart)
-        .maybeSingle();
-      if (error) throw error;
-      const raw = data as unknown as
-        | (WeeklyReviewRow & { weekly_review_goal_checkins: WeeklyReviewGoalCheckinRow[] })
-        | null;
-      return raw ? { ...raw, checkins: raw.weekly_review_goal_checkins } : null;
+      const review = (await weeklyReviews.select((r) => r.week_start_date === weekStart))[0];
+      if (!review) return null;
+      const checkins = await weeklyCheckins.select((c) => c.weekly_review_id === review.id);
+      return { ...review, checkins };
     },
-    enabled: !!userId,
   });
 }
 
@@ -43,38 +45,20 @@ export function useSaveWeeklyReview() {
 
   return useMutation({
     mutationFn: async (input: { reflection: string; checkins: GoalCheckinInput[] }) => {
-      const { data: review, error } = await supabase
-        .from('weekly_reviews')
-        .upsert(
-          {
-            user_id: userId,
-            week_start_date: weekStart,
-            reflection: input.reflection.trim() || null,
-            completed_at: new Date().toISOString(),
-          },
-          { onConflict: 'user_id,week_start_date' }
-        )
-        .select()
-        .single();
-      if (error) throw error;
+      const review = await weeklyReviews.upsert((r) => r.week_start_date === weekStart, {
+        week_start_date: weekStart,
+        reflection: input.reflection.trim() || null,
+        completed_at: new Date().toISOString(),
+      });
 
-      const { error: clearError } = await supabase
-        .from('weekly_review_goal_checkins')
-        .delete()
-        .eq('weekly_review_id', review.id);
-      if (clearError) throw clearError;
-
-      if (input.checkins.length > 0) {
-        const { error: insertError } = await supabase.from('weekly_review_goal_checkins').insert(
-          input.checkins.map((checkin) => ({
-            weekly_review_id: review.id,
-            user_id: userId,
-            goal_id: checkin.goalId,
-            rating: checkin.rating,
-            progress_note: checkin.progressNote.trim() || null,
-          }))
-        );
-        if (insertError) throw insertError;
+      await weeklyCheckins.deleteWhere((c) => c.weekly_review_id === review.id);
+      for (const checkin of input.checkins) {
+        await weeklyCheckins.insert({
+          weekly_review_id: review.id,
+          goal_id: checkin.goalId,
+          rating: checkin.rating,
+          progress_note: checkin.progressNote.trim() || null,
+        });
       }
     },
     onSettled: () => {
@@ -93,21 +77,14 @@ export function useCompleteQuarter() {
       const anchor = input.activeGoals[0];
       if (!anchor) throw new Error('No active goal cycle to complete');
 
-      const { error: reviewError } = await supabase.from('quarterly_reviews').insert({
-        user_id: userId,
+      await quarterlyReviews.insert({
         cycle_start_date: anchor.cycle_start_date,
         cycle_end_date: anchor.cycle_end_date,
         reflection: input.reflection.trim() || null,
         completed_at: new Date().toISOString(),
       });
-      if (reviewError) throw reviewError;
 
-      const { error: archiveError } = await supabase
-        .from('goals')
-        .update({ status: 'completed' })
-        .eq('user_id', userId)
-        .eq('status', 'active');
-      if (archiveError) throw archiveError;
+      await goalsTable.updateWhere((g) => g.status === 'active', { status: 'completed' });
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.goals(userId) });

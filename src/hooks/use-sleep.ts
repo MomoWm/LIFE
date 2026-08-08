@@ -1,14 +1,15 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { addDays, format, parseISO } from 'date-fns';
 
+import { table } from '@/lib/db/local-table';
 import { todayIso } from '@/lib/dates';
 import { queryKeys } from '@/lib/query/keys';
 import { resolveSleepTimestamps } from '@/lib/sleep/sleep';
-import { supabase } from '@/lib/supabase/client';
-import type { SleepLogRow } from '@/lib/supabase/types';
+import type { SleepLogRow } from '@/lib/db/types';
 import { useUserId } from '@/hooks/use-five45';
 
 const HISTORY_DAYS = 14;
+const sleepLogs = table<SleepLogRow>('sleep_logs');
 
 export function useSleepLogs() {
   const userId = useUserId();
@@ -17,16 +18,9 @@ export function useSleepLogs() {
     queryKey: queryKeys.sleep(userId),
     queryFn: async () => {
       const from = format(addDays(parseISO(todayIso()), -HISTORY_DAYS), 'yyyy-MM-dd');
-      const { data, error } = await supabase
-        .from('sleep_logs')
-        .select()
-        .eq('user_id', userId)
-        .gte('date', from)
-        .order('date', { ascending: false });
-      if (error) throw error;
-      return data as SleepLogRow[];
+      const rows = await sleepLogs.select((log) => log.date >= from);
+      return rows.slice().sort((a, b) => b.date.localeCompare(a.date));
     },
-    enabled: !!userId,
   });
 }
 
@@ -42,17 +36,12 @@ export function useLogSleep() {
     }) => {
       const date = todayIso();
       const { bedAt, wakeAt } = resolveSleepTimestamps(date, input.bedTime, input.wakeTime);
-      const { error } = await supabase.from('sleep_logs').upsert(
-        {
-          user_id: userId,
-          date,
-          bed_time: bedAt.toISOString(),
-          wake_time: wakeAt.toISOString(),
-          quality_rating: input.quality ?? null,
-        },
-        { onConflict: 'user_id,date' }
-      );
-      if (error) throw error;
+      await sleepLogs.upsert((log) => log.date === date, {
+        date,
+        bed_time: bedAt.toISOString(),
+        wake_time: wakeAt.toISOString(),
+        quality_rating: input.quality ?? null,
+      });
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.sleep(userId) });

@@ -21,7 +21,7 @@ import {
   computePrayerTimes,
   nextPrayer,
 } from '@/lib/prayerTimes/adhanClient';
-import type { PrayerName, PrayerStatus } from '@/lib/supabase/types';
+import type { PrayerName, PrayerStatus } from '@/lib/db/types';
 import {
   useLogQadaMakeup,
   usePrayerRange,

@@ -7,19 +7,19 @@ export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       staleTime: 30_000,
-      gcTime: 1000 * 60 * 60 * 24, // keep cache around for a day of offline reads
+      gcTime: 1000 * 60 * 60 * 24,
       retry: 1,
+      // 'always' — every query here reads local device storage, not a
+      // server. TanStack Query's default networkMode pauses queries and
+      // mutations when the browser reports itself offline; that rule exists
+      // for requests that need a network and is actively wrong for one that
+      // doesn't. Reads and writes must succeed with the radio off, since the
+      // radio was never involved.
+      networkMode: 'always',
     },
     mutations: {
-      // 'online' (the default, stated explicitly) pauses a mutation instead
-      // of failing it when there's no connection — task completions, prayer
-      // logs, workout sets, and work-event taps made offline queue in the
-      // mutation cache rather than being lost. Paused mutations are persisted
-      // alongside queries (see asyncStoragePersister below) and replayed via
-      // queryClient.resumePausedMutations() in the root layout, both right
-      // after a cold-start restore and on every reconnect.
-      networkMode: 'online',
-      retry: 3,
+      networkMode: 'always',
+      retry: 1,
     },
   },
 });

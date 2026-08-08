@@ -1,6 +1,6 @@
 import { CalculationMethod, Coordinates, Madhab, PrayerTimes, type CalculationParameters } from 'adhan';
 
-import type { PrayerName } from '@/lib/supabase/types';
+import type { PrayerName } from '@/lib/db/types';
 
 export const PRAYER_NAMES: readonly PrayerName[] = ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha'];
 

@@ -1,6 +1,4 @@
-import NetInfo from '@react-native-community/netinfo';
 import { DarkTheme, ThemeProvider } from '@react-navigation/native';
-import { onlineManager } from '@tanstack/react-query';
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
@@ -8,8 +6,9 @@ import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 
+import { ErrorBoundary } from '@/components/error-boundary';
 import { Colors, Family } from '@/constants/theme';
-import { AuthProvider, useAuth } from '@/hooks/use-auth';
+import { ensureSchemaCurrent } from '@/lib/db/local-table';
 import { asyncStoragePersister, queryClient } from '@/lib/query/queryClient';
 
 // Navigation chrome (stack backgrounds, headers, tab bar defaults) follows the
@@ -28,20 +27,7 @@ const LifeTheme = {
 
 SplashScreen.preventAutoHideAsync();
 
-// Let TanStack Query pause/resume fetches with real connectivity, and replay
-// any mutations that queued while offline (task completions, prayer logs,
-// workout sets, work-event taps — see queryClient.ts) the moment the
-// connection returns, not just on the next foreground.
-onlineManager.setEventListener((setOnline) =>
-  NetInfo.addEventListener((state) => {
-    const online = !!state.isConnected;
-    setOnline(online);
-    if (online) queryClient.resumePausedMutations();
-  })
-);
-
 function RootNavigator() {
-  const { session, isLoading } = useAuth();
   // Every type token names one of these families, so rendering before they
   // land would show a frame of fallback text at the wrong metrics and then
   // reflow. `error` is checked too: a font that fails to load must not hold
@@ -52,7 +38,11 @@ function RootNavigator() {
     [Family.bold]: require('@/assets/fonts/Archivo-700.ttf'),
     [Family.heavy]: require('@/assets/fonts/Archivo-800.ttf'),
   });
-  const ready = !isLoading && (fontsLoaded || !!fontError);
+  const ready = fontsLoaded || !!fontError;
+
+  useEffect(() => {
+    ensureSchemaCurrent();
+  }, []);
 
   useEffect(() => {
     if (ready) {
@@ -62,35 +52,24 @@ function RootNavigator() {
 
   if (!ready) return null;
 
+  // No auth split — LIFE is local-first with a single on-device install, so
+  // the tab stack is the only screen there is.
   return (
     <Stack screenOptions={{ headerShown: false }}>
-      <Stack.Protected guard={!!session}>
-        <Stack.Screen name="(tabs)" />
-      </Stack.Protected>
-      <Stack.Protected guard={!session}>
-        <Stack.Screen name="(auth)" />
-      </Stack.Protected>
+      <Stack.Screen name="(tabs)" />
     </Stack>
   );
 }
 
 export default function RootLayout() {
   return (
-    <ThemeProvider value={LifeTheme}>
-      <PersistQueryClientProvider
-        client={queryClient}
-        persistOptions={{ persister: asyncStoragePersister }}
-        onSuccess={() => {
-          // Cold-start restore: any mutation that was paused when the app was
-          // last closed is now back in the cache — replay it immediately
-          // rather than waiting for its query to be refetched.
-          queryClient.resumePausedMutations();
-        }}>
-        <AuthProvider>
+    <ErrorBoundary>
+      <ThemeProvider value={LifeTheme}>
+        <PersistQueryClientProvider client={queryClient} persistOptions={{ persister: asyncStoragePersister }}>
           <RootNavigator />
           <StatusBar style="light" />
-        </AuthProvider>
-      </PersistQueryClientProvider>
-    </ThemeProvider>
+        </PersistQueryClientProvider>
+      </ThemeProvider>
+    </ErrorBoundary>
   );
 }

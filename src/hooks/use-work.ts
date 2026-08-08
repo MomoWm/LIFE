@@ -1,16 +1,16 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { addDays, format, parseISO } from 'date-fns';
 
+import { table } from '@/lib/db/local-table';
 import { todayIso } from '@/lib/dates';
 import { queryKeys } from '@/lib/query/keys';
-import { supabase } from '@/lib/supabase/client';
 import type {
   WorkBreakRow,
   WorkEventRow,
   WorkEventType,
   WorkSessionRow,
   WorkTargetsRow,
-} from '@/lib/supabase/types';
+} from '@/lib/db/types';
 import { useUserId } from '@/hooks/use-five45';
 
 export type WorkToday = {
@@ -25,6 +25,11 @@ const EMPTY_COUNTS: Record<WorkEventType, number> = {
   appointment: 0,
 };
 
+const workSessions = table<WorkSessionRow>('work_sessions');
+const workBreaks = table<WorkBreakRow>('work_breaks');
+const workEvents = table<WorkEventRow>('work_events');
+const workTargets = table<WorkTargetsRow>('work_targets');
+
 export function useWorkToday() {
   const userId = useUserId();
   const date = todayIso();
@@ -32,35 +37,23 @@ export function useWorkToday() {
   return useQuery({
     queryKey: queryKeys.workToday(userId, date),
     queryFn: async (): Promise<WorkToday> => {
-      const [sessionRes, eventsRes] = await Promise.all([
-        supabase
-          .from('work_sessions')
-          .select('*, work_breaks(*)')
-          .eq('user_id', userId)
-          .eq('date', date)
-          .order('created_at', { ascending: false })
-          .limit(1)
-          .maybeSingle(),
-        supabase.from('work_events').select('event_type').eq('user_id', userId).eq('date', date),
+      const [sessions, breaks, events] = await Promise.all([
+        workSessions.select((s) => s.date === date),
+        workBreaks.select(),
+        workEvents.select((e) => e.date === date),
       ]);
-      if (sessionRes.error) throw sessionRes.error;
-      if (eventsRes.error) throw eventsRes.error;
+      const session = sessions.slice().sort((a, b) => b.created_at.localeCompare(a.created_at))[0] ?? null;
 
       const counts = { ...EMPTY_COUNTS };
-      for (const row of eventsRes.data as Pick<WorkEventRow, 'event_type'>[]) {
-        counts[row.event_type] += 1;
-      }
-
-      const raw = sessionRes.data as unknown as
-        | (WorkSessionRow & { work_breaks: WorkBreakRow[] })
-        | null;
+      for (const row of events) counts[row.event_type] += 1;
 
       return {
-        session: raw ? { ...raw, breaks: raw.work_breaks } : null,
+        session: session
+          ? { ...session, breaks: breaks.filter((b) => b.work_session_id === session.id) }
+          : null,
         counts,
       };
     },
-    enabled: !!userId,
     refetchInterval: 60_000,
   });
 }
@@ -73,48 +66,40 @@ function useInvalidateWorkToday() {
 }
 
 export function useStartWork() {
-  const userId = useUserId();
   const invalidate = useInvalidateWorkToday();
 
   return useMutation({
     mutationFn: async () => {
-      const { error } = await supabase
-        .from('work_sessions')
-        .insert({ user_id: userId, date: todayIso(), status: 'active' });
-      if (error) throw error;
+      await workSessions.insert({
+        date: todayIso(),
+        started_at: new Date().toISOString(),
+        ended_at: null,
+        status: 'active',
+      });
     },
     onSettled: invalidate,
   });
 }
 
 export function useToggleBreak() {
-  const userId = useUserId();
   const invalidate = useInvalidateWorkToday();
 
   return useMutation({
     mutationFn: async (session: WorkToday['session']) => {
       if (!session) return;
       if (session.status === 'active') {
-        const [breakRes, sessionRes] = await Promise.all([
-          supabase.from('work_breaks').insert({ work_session_id: session.id, user_id: userId }),
-          supabase.from('work_sessions').update({ status: 'on_break' }).eq('id', session.id),
-        ]);
-        if (breakRes.error) throw breakRes.error;
-        if (sessionRes.error) throw sessionRes.error;
+        await workBreaks.insert({
+          work_session_id: session.id,
+          started_at: new Date().toISOString(),
+          ended_at: null,
+        });
+        await workSessions.update(session.id, { status: 'on_break' });
       } else if (session.status === 'on_break') {
         const openBreak = session.breaks.find((b) => b.ended_at === null);
         if (openBreak) {
-          const { error } = await supabase
-            .from('work_breaks')
-            .update({ ended_at: new Date().toISOString() })
-            .eq('id', openBreak.id);
-          if (error) throw error;
+          await workBreaks.update(openBreak.id, { ended_at: new Date().toISOString() });
         }
-        const { error } = await supabase
-          .from('work_sessions')
-          .update({ status: 'active' })
-          .eq('id', session.id);
-        if (error) throw error;
+        await workSessions.update(session.id, { status: 'active' });
       }
     },
     onSettled: invalidate,
@@ -129,17 +114,9 @@ export function useEndWork() {
       if (!session) return;
       const openBreak = session.breaks.find((b) => b.ended_at === null);
       if (openBreak) {
-        const { error } = await supabase
-          .from('work_breaks')
-          .update({ ended_at: new Date().toISOString() })
-          .eq('id', openBreak.id);
-        if (error) throw error;
+        await workBreaks.update(openBreak.id, { ended_at: new Date().toISOString() });
       }
-      const { error } = await supabase
-        .from('work_sessions')
-        .update({ status: 'ended', ended_at: new Date().toISOString() })
-        .eq('id', session.id);
-      if (error) throw error;
+      await workSessions.update(session.id, { status: 'ended', ended_at: new Date().toISOString() });
     },
     onSettled: invalidate,
   });
@@ -153,13 +130,12 @@ export function useLogWorkEvent() {
 
   return useMutation({
     mutationFn: async (input: { eventType: WorkEventType; sessionId: string | null }) => {
-      const { error } = await supabase.from('work_events').insert({
-        user_id: userId,
+      await workEvents.insert({
         work_session_id: input.sessionId,
         date,
         event_type: input.eventType,
+        occurred_at: new Date().toISOString(),
       });
-      if (error) throw error;
     },
     onMutate: async (input) => {
       await queryClient.cancelQueries({ queryKey: key });
@@ -188,16 +164,7 @@ export function useWorkTargets() {
   const userId = useUserId();
   return useQuery({
     queryKey: queryKeys.workTargets(userId),
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('work_targets')
-        .select()
-        .eq('user_id', userId)
-        .maybeSingle();
-      if (error) throw error;
-      return (data as WorkTargetsRow | null) ?? null;
-    },
-    enabled: !!userId,
+    queryFn: async () => (await workTargets.select())[0] ?? null,
   });
 }
 
@@ -210,23 +177,16 @@ export function useWorkRange(days: number) {
   return useQuery({
     queryKey: queryKeys.workRange(userId, from, to),
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('work_events')
-        .select('event_type, date')
-        .eq('user_id', userId)
-        .gte('date', from)
-        .lte('date', to);
-      if (error) throw error;
+      const rows = await workEvents.select((e) => e.date >= from && e.date <= to);
 
       const counts = { ...EMPTY_COUNTS };
       const activeDays = new Set<string>();
-      for (const row of data as Pick<WorkEventRow, 'event_type' | 'date'>[]) {
+      for (const row of rows) {
         counts[row.event_type] += 1;
         activeDays.add(row.date);
       }
       return { counts, activeDayCount: activeDays.size };
     },
-    enabled: !!userId,
   });
 }
 

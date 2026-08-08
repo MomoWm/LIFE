@@ -3,7 +3,7 @@ import { addDays } from 'date-fns';
 import { Platform } from 'react-native';
 
 import { PRAYER_LABELS, computePrayerTimes } from '@/lib/prayerTimes/adhanClient';
-import type { NotificationPreferencesRow, ProfileRow } from '@/lib/supabase/types';
+import type { NotificationPreferencesRow, ProfileRow } from '@/lib/db/types';
 
 // Local scheduled notifications only exist on the native app; on web this
 // module is a set of no-ops.

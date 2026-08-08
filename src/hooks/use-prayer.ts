@@ -1,12 +1,15 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { addDays, format, parseISO } from 'date-fns';
 
+import { table } from '@/lib/db/local-table';
 import { todayIso } from '@/lib/dates';
 import { queryKeys } from '@/lib/query/keys';
 import { computeDailyCompletionStreak } from '@/lib/streaks/streaks';
-import { supabase } from '@/lib/supabase/client';
-import type { PrayerLogRow, PrayerName, PrayerStatus } from '@/lib/supabase/types';
+import type { PrayerLogRow, PrayerName, PrayerStatus, QadaMakeupRow } from '@/lib/db/types';
 import { useUserId } from '@/hooks/use-five45';
+
+const prayerLogs = table<PrayerLogRow>('prayer_logs');
+const qadaMakeups = table<QadaMakeupRow>('qada_makeups');
 
 export function usePrayerToday() {
   const userId = useUserId();
@@ -14,16 +17,7 @@ export function usePrayerToday() {
 
   return useQuery({
     queryKey: queryKeys.prayerToday(userId, date),
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('prayer_logs')
-        .select()
-        .eq('user_id', userId)
-        .eq('date', date);
-      if (error) throw error;
-      return data as PrayerLogRow[];
-    },
-    enabled: !!userId,
+    queryFn: () => prayerLogs.select((log) => log.date === date),
   });
 }
 
@@ -35,27 +29,17 @@ export function useSetPrayerStatus() {
 
   return useMutation({
     mutationFn: async (input: { prayer: PrayerName; status: PrayerStatus | null }) => {
+      const isSlot = (log: PrayerLogRow) => log.date === date && log.prayer === input.prayer;
       if (input.status === null) {
-        const { error } = await supabase
-          .from('prayer_logs')
-          .delete()
-          .eq('user_id', userId)
-          .eq('date', date)
-          .eq('prayer', input.prayer);
-        if (error) throw error;
+        await prayerLogs.deleteWhere(isSlot);
         return;
       }
-      const { error } = await supabase.from('prayer_logs').upsert(
-        {
-          user_id: userId,
-          date,
-          prayer: input.prayer,
-          status: input.status,
-          prayed_at: input.status === 'on_time' || input.status === 'late' ? new Date().toISOString() : null,
-        },
-        { onConflict: 'user_id,date,prayer' }
-      );
-      if (error) throw error;
+      await prayerLogs.upsert(isSlot, {
+        date,
+        prayer: input.prayer,
+        status: input.status,
+        prayed_at: input.status === 'on_time' || input.status === 'late' ? new Date().toISOString() : null,
+      });
     },
     onMutate: async (input) => {
       await queryClient.cancelQueries({ queryKey: key });
@@ -69,7 +53,6 @@ export function useSetPrayerStatus() {
                 ...rest,
                 {
                   id: `optimistic-${input.prayer}`,
-                  user_id: userId,
                   date,
                   prayer: input.prayer,
                   status: input.status,
@@ -103,16 +86,12 @@ export function usePrayerStreak() {
     queryFn: async () => {
       const today = todayIso();
       const from = format(addDays(parseISO(today), -STREAK_LOOKBACK_DAYS), 'yyyy-MM-dd');
-      const { data, error } = await supabase
-        .from('prayer_logs')
-        .select('date, prayer, status')
-        .eq('user_id', userId)
-        .gte('date', from)
-        .in('status', ['on_time', 'late']);
-      if (error) throw error;
+      const rows = await prayerLogs.select(
+        (log) => log.date >= from && (log.status === 'on_time' || log.status === 'late')
+      );
 
       const prayedByDate = new Map<string, Set<string>>();
-      for (const row of data as Pick<PrayerLogRow, 'date' | 'prayer' | 'status'>[]) {
+      for (const row of rows) {
         if (!prayedByDate.has(row.date)) prayedByDate.set(row.date, new Set());
         prayedByDate.get(row.date)!.add(row.prayer);
       }
@@ -124,7 +103,6 @@ export function usePrayerStreak() {
 
       return computeDailyCompletionStreak(completeDates, today);
     },
-    enabled: !!userId,
   });
 }
 
@@ -142,16 +120,10 @@ export function usePrayerRange(days: number) {
   return useQuery({
     queryKey: [...queryKeys.prayerHistory(userId), 'range', days] as const,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('prayer_logs')
-        .select('date, prayer, status')
-        .eq('user_id', userId)
-        .gte('date', from)
-        .lte('date', to);
-      if (error) throw error;
+      const rows = await prayerLogs.select((log) => log.date >= from && log.date <= to);
 
       const seen = new Map<string, number>();
-      for (const row of data as Pick<PrayerLogRow, 'date' | 'prayer' | 'status'>[]) {
+      for (const row of rows) {
         if (!seen.has(row.date)) seen.set(row.date, 0);
         if (row.status === 'on_time' || row.status === 'late') {
           seen.set(row.date, seen.get(row.date)! + 1);
@@ -163,7 +135,6 @@ export function usePrayerRange(days: number) {
         return { date, prayed: seen.has(date) ? seen.get(date)! : null };
       });
     },
-    enabled: !!userId,
   });
 }
 
@@ -173,22 +144,12 @@ export function useQadaBalance() {
   return useQuery({
     queryKey: queryKeys.qada(userId),
     queryFn: async () => {
-      const [missedRes, makeupsRes] = await Promise.all([
-        supabase
-          .from('prayer_logs')
-          .select('id', { count: 'exact', head: true })
-          .eq('user_id', userId)
-          .eq('status', 'missed'),
-        supabase
-          .from('qada_makeups')
-          .select('id', { count: 'exact', head: true })
-          .eq('user_id', userId),
+      const [missed, makeups] = await Promise.all([
+        prayerLogs.select((log) => log.status === 'missed'),
+        qadaMakeups.select(),
       ]);
-      if (missedRes.error) throw missedRes.error;
-      if (makeupsRes.error) throw makeupsRes.error;
-      return Math.max(0, (missedRes.count ?? 0) - (makeupsRes.count ?? 0));
+      return Math.max(0, missed.length - makeups.length);
     },
-    enabled: !!userId,
   });
 }
 
@@ -198,8 +159,7 @@ export function useLogQadaMakeup() {
 
   return useMutation({
     mutationFn: async (prayer: PrayerName) => {
-      const { error } = await supabase.from('qada_makeups').insert({ user_id: userId, prayer });
-      if (error) throw error;
+      await qadaMakeups.insert({ prayer, made_up_at: new Date().toISOString(), source_prayer_log_id: null });
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.qada(userId) });
