@@ -13,7 +13,7 @@ import {
 import Animated, { FadeInDown, useReducedMotion } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { MaxContentWidth, Spacing, WideBreakpoint, WideColumnWidth } from '@/constants/theme';
+import { BottomTabInset, MaxContentWidth, Spacing, WideBreakpoint, WideColumnWidth } from '@/constants/theme';
 
 type ScreenProps = PropsWithChildren<{
   contentStyle?: StyleProp<ViewStyle>;
@@ -110,9 +110,10 @@ export function Screen({ children, contentStyle, wideLayout = 'single' }: Screen
         styles.outer,
         isWide && styles.outerWide,
         topPad > 0 && { paddingTop: topPad },
-        // Nothing floats over the bottom any more; the home indicator still
-        // needs clearing on a gesture-nav phone.
-        { paddingBottom: insets.bottom + Spacing.six },
+        // The tab bar now floats above the bottom edge instead of taking
+        // layout space, so content needs explicit clearance for it on top of
+        // the home-indicator/gesture-nav inset.
+        { paddingBottom: insets.bottom + BottomTabInset + Spacing.three },
       ]}>
       {/* Capped and centred so an iPad doesn't stretch a phone layout across
           1000pt of width — long measures and marooned controls are what make a

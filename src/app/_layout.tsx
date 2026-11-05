@@ -1,4 +1,6 @@
-import { DarkTheme, ThemeProvider } from '@react-navigation/native';
+import { Baloo2_400Regular, Baloo2_600SemiBold, Baloo2_700Bold, Baloo2_800ExtraBold } from '@expo-google-fonts/baloo-2';
+import { Nunito_400Regular, Nunito_600SemiBold, Nunito_700Bold } from '@expo-google-fonts/nunito';
+import { DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
@@ -7,21 +9,21 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 
 import { ErrorBoundary } from '@/components/error-boundary';
-import { Colors, Family } from '@/constants/theme';
+import { Colors } from '@/constants/theme';
 import { ensureSchemaCurrent } from '@/lib/db/local-table';
 import { asyncStoragePersister, queryClient } from '@/lib/query/queryClient';
 
 // Navigation chrome (stack backgrounds, headers, tab bar defaults) follows the
-// LIFE charcoal palette instead of React Navigation's stock dark theme.
+// LIFE warm-paper palette instead of React Navigation's stock light theme.
 const LifeTheme = {
-  ...DarkTheme,
+  ...DefaultTheme,
   colors: {
-    ...DarkTheme.colors,
-    primary: Colors.dark.tint,
-    background: Colors.dark.background,
-    card: Colors.dark.background,
-    text: Colors.dark.text,
-    border: Colors.dark.separator,
+    ...DefaultTheme.colors,
+    primary: Colors.light.tint,
+    background: Colors.light.background,
+    card: Colors.light.background,
+    text: Colors.light.text,
+    border: Colors.light.separator,
   },
 } as const;
 
@@ -33,10 +35,13 @@ function RootNavigator() {
   // reflow. `error` is checked too: a font that fails to load must not hold
   // the splash screen forever — unstyled text beats a permanently blank app.
   const [fontsLoaded, fontError] = useFonts({
-    [Family.regular]: require('@/assets/fonts/Archivo-400.ttf'),
-    [Family.medium]: require('@/assets/fonts/Archivo-600.ttf'),
-    [Family.bold]: require('@/assets/fonts/Archivo-700.ttf'),
-    [Family.heavy]: require('@/assets/fonts/Archivo-800.ttf'),
+    Baloo2_400Regular,
+    Baloo2_600SemiBold,
+    Baloo2_700Bold,
+    Baloo2_800ExtraBold,
+    Nunito_400Regular,
+    Nunito_600SemiBold,
+    Nunito_700Bold,
   });
   const ready = fontsLoaded || !!fontError;
 
@@ -67,7 +72,7 @@ export default function RootLayout() {
       <ThemeProvider value={LifeTheme}>
         <PersistQueryClientProvider client={queryClient} persistOptions={{ persister: asyncStoragePersister }}>
           <RootNavigator />
-          <StatusBar style="light" />
+          <StatusBar style="dark" />
         </PersistQueryClientProvider>
       </ThemeProvider>
     </ErrorBoundary>

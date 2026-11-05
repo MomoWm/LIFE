@@ -53,7 +53,7 @@ export default function Five45Screen() {
                 { borderColor: theme.separator },
                 pressed && { opacity: 0.6 },
               ]}>
-              <Icon name="slider.horizontal.3" size={15} tintColor={theme.textSecondary} />
+              <Icon name="options" size={15} tintColor={theme.textSecondary} />
               <ThemedText type="label" themeColor="textSecondary">
                 Templates
               </ThemedText>
@@ -82,7 +82,7 @@ export default function Five45Screen() {
                 {progress === 1 && totalTasks > 0 ? 'Day complete' : 'In progress'}
               </ThemedText>
               <View style={styles.streakLine}>
-                <Icon name="flame.fill" size={13} tintColor={theme.textTertiary} />
+                <Icon name="flame" size={13} tintColor={theme.textTertiary} />
                 <ThemedText type="small" themeColor="textSecondary">
                   {streak ?? 0} day streak
                 </ThemedText>
@@ -135,7 +135,7 @@ export default function Five45Screen() {
           }>
           {wakeTasks.length === 0 ? (
             <EmptyState
-                icon="checklist"
+                icon="list"
                 color={Domain.routine}
                 title="Your morning 5"
                 body="Five things, before the day starts."
@@ -161,7 +161,7 @@ export default function Five45Screen() {
           contentStyle={styles.goalList}>
           {(goals ?? []).length === 0 ? (
             <EmptyState
-                icon="target"
+                icon="locate"
                 color={Domain.routine}
                 title="Four goals"
                 body="What this quarter is for."
@@ -193,7 +193,7 @@ export default function Five45Screen() {
           }>
           {eodTasks.length === 0 ? (
             <EmptyState
-                icon="checklist"
+                icon="list"
                 color={Domain.routine}
                 title="Your evening 5"
                 body="Five you don't sleep without."
@@ -214,14 +214,14 @@ export default function Five45Screen() {
         {/* An inline row, not a card — it is one line of text and a link. */}
         <Pressable onPress={() => router.push('/five45/review')} accessibilityRole="button">
           <View style={[styles.reviewRow, { borderTopColor: theme.separator }]}>
-            <Icon name="checkmark.rectangle.stack.fill" size={16} tintColor={theme.textSecondary} />
+            <Icon name="checkmark-done-circle" size={16} tintColor={theme.textSecondary} />
             <ThemedText type="smallBold" style={styles.reviewTitle}>
               Weekly review
             </ThemedText>
             <ThemedText type="label" themeColor="textTertiary">
               {new Date().getDay() === 0 ? 'Due today' : 'Sundays'}
             </ThemedText>
-            <Icon name="chevron.right" size={12} weight="semibold" tintColor={theme.textTertiary} />
+            <Icon name="chevron-forward" size={14} tintColor={theme.textTertiary} />
           </View>
         </Pressable>
 

@@ -97,7 +97,7 @@ export default function FunnelScreen() {
             ))}
 
             <View style={[styles.overallRow, { borderTopColor: theme.separator }]}>
-              <Icon name="arrow.down.right.circle.fill" size={16} tintColor={theme.tint} />
+              <Icon name="trending-down" size={16} tintColor={theme.tint} />
               <ThemedText type="small" themeColor="textSecondary" style={styles.overallText}>
                 Overall: {formatRate(rates.overallRate)} of doors become appointments
                 {data ? ` · ${data.activeDayCount} active day${data.activeDayCount === 1 ? '' : 's'}` : ''}

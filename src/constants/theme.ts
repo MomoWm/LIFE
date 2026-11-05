@@ -1,89 +1,95 @@
 /**
- * LIFE design tokens.
+ * LIFE design tokens — "playful & tactile."
  *
- * The visual identity is a restrained dark "command center": near-black
- * charcoal grounds, tonal layering instead of shadows, one muted premium
- * green accent, and semantic colors used only when state demands them.
- * Extend here rather than inlining hex values in components.
+ * A full rewrite of the visual identity: a warm cream "paper" ground instead
+ * of a dark charcoal one, bright candy-saturated domain colors instead of
+ * muted jewel tones, big rounded shapes, soft tactile shadows instead of
+ * lit-gradient cards (shadows need a light ground to read against — that's
+ * the whole reason this flips from dark to light), and a rounded display
+ * typeface instead of a sharp grotesque. Extend here rather than inlining
+ * hex values or one-off fontFamily strings in components.
  *
- * v1 ships dark-only (see use-theme.ts); the light palette is kept in sync
- * so a future light mode is a one-line change, not a redesign.
+ * Ships light-only by design, same as the previous dark-only decision: one
+ * polished theme beats two half-tuned ones. The dark palette is kept in sync
+ * so a future dark/night mode is a one-line change in `use-theme.ts`, not a
+ * redesign.
  */
 
 import { Platform } from 'react-native';
 
 export const Colors = {
   light: {
-    text: '#1A1A18',
-    textSecondary: '#61615F',
-    textTertiary: '#8F8F8C',
-    background: '#FAFAF9',
-    backgroundElement: '#F1F1EF',
-    backgroundSelected: '#E8E8E5',
-    groupedBackground: '#F5F5F4',
-    separator: '#E3E3E0',
-    tint: '#0E8F60',
+    text: '#2B2420',
+    textSecondary: '#8A7F72',
+    textTertiary: '#B3A99B',
+    background: '#FFF9F0',
+    backgroundElement: '#FFFFFF',
+    backgroundSelected: '#FFEFD9',
+    groupedBackground: '#FFF9F0',
+    separator: '#F0E6D8',
+    // The unfilled part of any progress indicator/ring.
+    track: '#F2E9DA',
+    tint: '#1FAE78',
     onTint: '#FFFFFF',
-    success: '#0E8F60',
-    warning: '#9A6B0B',
-    danger: '#BC3F37',
-    info: '#2F6CA8',
+    success: '#1FAE78',
+    warning: '#E8A617',
+    danger: '#F0645C',
+    info: '#3E9AE0',
   },
   dark: {
-    text: '#F2F3F2',
-    textSecondary: '#96999B',
-    textTertiary: '#616468',
-    // Graphite, not void. A pure-black ground with a saturated accent on top
-    // is the arcade/game look; lifting the base into charcoal is most of what
-    // separates "instrument" from "HUD".
-    background: '#101216',
-    backgroundElement: '#191C21',
-    backgroundSelected: '#23272E',
-    groupedBackground: '#101216',
-    separator: 'rgba(255, 255, 255, 0.08)',
-    // The unfilled part of any progress indicator. Translucent rather than a
-    // solid tone because a fixed colour that reads correctly on the ground
-    // disappears on a raised card — which is exactly where the rings sit.
-    track: 'rgba(255, 255, 255, 0.09)',
-    // Pale, heavily desaturated sage. The previous #3DBE8B was a vivid mint —
-    // neon green on black is exactly the arcade signature. At this saturation
-    // it reads first as "light", and only then as green.
-    tint: '#A6C1B2',
+    text: '#F5F1E8',
+    textSecondary: '#B3A99B',
+    textTertiary: '#7A7064',
+    background: '#211B14',
+    backgroundElement: '#2C251C',
+    backgroundSelected: '#3A3024',
+    groupedBackground: '#211B14',
+    separator: 'rgba(255, 246, 230, 0.1)',
+    track: 'rgba(255, 246, 230, 0.1)',
+    tint: '#34D399',
     onTint: '#0E1512',
-    success: '#A6C1B2',
-    warning: '#C9A469',
-    danger: '#D2807A',
-    info: '#8FA9C4',
+    success: '#34D399',
+    warning: '#FBBF24',
+    danger: '#FB6F6F',
+    info: '#38BDF8',
   },
 } as const;
 
 export type ThemeColor = keyof typeof Colors.light & keyof typeof Colors.dark;
 
 /**
- * Surface materiality. Flat fills read as cardboard; real surfaces catch light
- * from above. Every card is a top-lit vertical gradient plus a hairline
- * specular edge — the difference between matte board and polished stone.
+ * Soft, warm, low-opacity shadows at a few depths — the "sticker/clay" lift
+ * that reads as tactile instead of flat. Replaces the old gradient-lit-card
+ * system (`Surface`), which existed only because shadows don't show up on a
+ * dark ground; on this warm paper ground a real shadow does the job.
  */
-export const Surface = {
-  /** Card gradient, top (lit) -> bottom (shadowed). */
-  card: ['#1D2026', '#15171C'] as const,
-  /** Raised/interactive variant, one step brighter. */
-  cardRaised: ['#262A32', '#1B1E24'] as const,
-  /** Hairline highlight along the top edge, where light would hit. */
-  edgeHighlight: 'rgba(255, 255, 255, 0.09)',
-  /** Accent wash for hero surfaces — tint at very low alpha. */
-  accentWash: ['rgba(166, 193, 178, 0.14)', 'rgba(166, 193, 178, 0.02)'] as const,
+// react-native-web renders shadowColor/Offset/Opacity/Radius fine but logs
+// each as deprecated in favor of the CSS-native boxShadow; native (where
+// boxShadow doesn't exist) needs the shadow*/elevation props instead. Each
+// depth below picks one set per platform rather than shipping both, so
+// neither platform sees a prop it would warn about or ignore.
+const depth = (y: number, blur: number, opacity: number, elevation: number) =>
+  Platform.OS === 'web'
+    ? { boxShadow: `0px ${y}px ${blur}px rgba(107, 79, 42, ${opacity})` }
+    : {
+        shadowColor: '#6B4F2A',
+        shadowOffset: { width: 0, height: y },
+        shadowOpacity: opacity,
+        shadowRadius: blur,
+        elevation,
+      };
+
+export const Shadow = {
+  resting: depth(4, 10, 0.1, 3),
+  raised: depth(8, 18, 0.14, 6),
+  pressed: depth(2, 5, 0.08, 1),
 } as const;
 
 export const Fonts = Platform.select({
   ios: {
-    /** iOS `UIFontDescriptorSystemDesignDefault` */
     sans: 'system-ui',
-    /** iOS `UIFontDescriptorSystemDesignSerif` */
     serif: 'ui-serif',
-    /** iOS `UIFontDescriptorSystemDesignRounded` */
     rounded: 'ui-rounded',
-    /** iOS `UIFontDescriptorSystemDesignMonospaced` */
     mono: 'ui-monospace',
   },
   default: {
@@ -110,126 +116,105 @@ export const Spacing = {
   six: 64,
 } as const;
 
+/**
+ * Big and round, on purpose — the single biggest lever on "playful" vs
+ * "instrument." `pill` is new: fully-rounded chips, tags and small buttons.
+ */
 export const CornerRadius = {
-  small: 8,
-  medium: 12,
-  large: 18,
-  xlarge: 24,
+  small: 14,
+  medium: 20,
+  large: 28,
+  xlarge: 36,
+  pill: 999,
 } as const;
 
 /**
- * Domain hues. Each screen owns one, so a glance at a chart or ring says which
- * part of life it belongs to before any label is read.
- *
- * These are held at the same low saturation and lightness as the sage accent
- * on purpose — they are meant to differentiate meaning, not to decorate. They
- * tint strokes, rings and small marks; they never fill a large surface, and a
- * screen shows exactly one of them.
- */
-/**
- * Domain colors, one per life area.
- *
- * These carry more chroma than the rest of the palette on purpose — they are
- * the one place saturation is allowed to do work, so that five identical grey
- * cards become five recognizable areas of a life at a glance. The line to
- * hold is jewel tone, not neon: each color sits at a lightness where it reads
- * as vivid against the charcoal ground without ever competing with the
- * near-white text sitting on top of it. Below that lightness a color goes
- * muddy on charcoal; above it, it starts to glow like the arcade look the
- * rest of the palette exists to avoid.
+ * Domain hues, bumped to full candy saturation — a big jump up from the old
+ * desaturated jewel tones. Each screen owns one, so a glance at a ring or
+ * chart says which part of life it belongs to before any label is read.
  */
 export const Domain = {
-  routine: '#3ED68F', // emerald — completion
-  prayer: '#7C8FEF', // indigo
-  work: '#E8AC54', // amber
-  training: '#B683F0', // amethyst
-  sleep: '#57A6E8', // azure
+  routine: '#2BC98B', // mint — completion
+  prayer: '#8186F3', // periwinkle
+  work: '#FFA53D', // tangerine
+  training: '#C073F5', // grape
+  sleep: '#39B6F5', // sky
 } as const;
 
 /** Breakpoint above which layouts may use two columns (iPad and wider). */
 export const WideBreakpoint = 700;
 
 /**
- * Type scale. The single biggest lever on whether the app reads as a premium
- * instrument or a spreadsheet: hero numbers are enormous and tightly tracked,
- * labels are small caps with open tracking, and body sits quietly between
- * them. Display sizes get negative tracking (large type looks loose by
- * default); small caps get positive tracking (small type looks cramped).
- */
-/**
- * The app's voice.
- *
- * Archivo — a grotesque drawn for headlines and interfaces alike: high
- * x-height, tight apertures, near-vertical terminals. It carries weight at 64pt
- * without turning decorative and stays legible at 11pt, which matters here
- * because the same family has to hold a screen-filling score and an uppercase
- * eyebrow label. The system font could do neither with any character; a system
- * font is what an app looks like before anyone has decided how it should look.
- *
- * Shipped as four static weights rather than one variable file because Google
- * only serves statics in TTF, and native needs TTF. Weight comes from the
- * family name, never from `fontWeight`: the faces are already bold, so asking
- * the renderer for bold on top of them produces faux-bold smearing on web.
+ * The app's voice: two rounded Google families instead of one sharp
+ * grotesque. Baloo 2 — a chunky, bubbly display face — carries headlines,
+ * hero numbers and short UI chrome (tab labels, eyebrows, badges); Nunito —
+ * a warm, easy-reading rounded text face — carries body copy, which Baloo 2
+ * gets mushy at. Shipped as static weights (not variable) because the same
+ * constraint as before applies: native needs TTF, and Google only serves
+ * statics as TTF.
  */
 export const Family = {
-  regular: 'Archivo_400',
-  medium: 'Archivo_600',
-  bold: 'Archivo_700',
-  heavy: 'Archivo_800',
+  regular: 'Baloo2_400Regular',
+  medium: 'Baloo2_600SemiBold',
+  bold: 'Baloo2_700Bold',
+  heavy: 'Baloo2_800ExtraBold',
 } as const;
 
-export const Type = {
-  /**
-   * Screen-owning number: today's score, a streak count.
-   *
-   * Line heights below are all >= 1.1x the size. A display line set at exactly
-   * its font size looks tight and correct until the text wraps — then the
-   * second line's ascenders collide with the first line's descenders, which is
-   * what "the words overlap when I resize the window" is. Wrapping only
-   * happens at narrow widths, so this never shows up at one fixed viewport.
-   */
-  display: { fontSize: 64, lineHeight: 71, fontFamily: Family.heavy, letterSpacing: -2.5 },
-  /** Secondary hero metric inside a card. */
-  metric: { fontSize: 40, lineHeight: 46, fontFamily: Family.bold, letterSpacing: -1.4 },
-  /** Compact metric for dense panels and inline stats. */
-  metricSmall: { fontSize: 26, lineHeight: 32, fontFamily: Family.bold, letterSpacing: -0.8 },
-  title: { fontSize: 30, lineHeight: 34, fontFamily: Family.bold, letterSpacing: -0.9 },
-  subtitle: { fontSize: 21, lineHeight: 27, fontFamily: Family.medium, letterSpacing: -0.45 },
-  body: { fontSize: 16, lineHeight: 23, fontFamily: Family.regular, letterSpacing: -0.1 },
-  small: { fontSize: 14, lineHeight: 20, fontFamily: Family.regular, letterSpacing: -0.05 },
-  smallBold: { fontSize: 14, lineHeight: 20, fontFamily: Family.medium, letterSpacing: -0.1 },
-  /** Uppercase section/eyebrow label — the quiet structural voice. */
-  label: { fontSize: 11, lineHeight: 14, fontFamily: Family.bold, letterSpacing: 1.3 },
+/** Body-copy counterpart to `Family` — used only by the `Type.body`/`small`/`smallBold` roles. */
+export const BodyFamily = {
+  regular: 'Nunito_400Regular',
+  medium: 'Nunito_600SemiBold',
+  bold: 'Nunito_700Bold',
 } as const;
 
 /**
- * Motion durations (ms). Fast and meaningful — press feedback is near-instant,
- * transitions never make the user wait. Pair with Easing.out(Easing.quad) for
- * entries and Easing.inOut(Easing.quad) for state changes.
+ * Type scale. Display sizes keep a little negative tracking so Baloo 2's
+ * width doesn't sprawl at hero sizes; small caps keep positive tracking so
+ * they don't feel cramped. Nothing here needs Archivo's aggressive negative
+ * tracking — a rounded face is meant to feel open, not engineered.
+ */
+export const Type = {
+  /** Screen-owning number: today's score, a streak count. */
+  display: { fontSize: 60, lineHeight: 67, fontFamily: Family.heavy, letterSpacing: -1 },
+  /** Secondary hero metric inside a card. */
+  metric: { fontSize: 38, lineHeight: 44, fontFamily: Family.bold, letterSpacing: -0.6 },
+  /** Compact metric for dense panels and inline stats. */
+  metricSmall: { fontSize: 25, lineHeight: 31, fontFamily: Family.bold, letterSpacing: -0.3 },
+  title: { fontSize: 28, lineHeight: 34, fontFamily: Family.bold, letterSpacing: -0.3 },
+  subtitle: { fontSize: 20, lineHeight: 26, fontFamily: Family.medium, letterSpacing: -0.1 },
+  body: { fontSize: 16, lineHeight: 24, fontFamily: BodyFamily.regular, letterSpacing: 0 },
+  small: { fontSize: 14, lineHeight: 20, fontFamily: BodyFamily.regular, letterSpacing: 0 },
+  smallBold: { fontSize: 14, lineHeight: 20, fontFamily: BodyFamily.bold, letterSpacing: 0 },
+  /** Uppercase section/eyebrow label. */
+  label: { fontSize: 12, lineHeight: 15, fontFamily: Family.bold, letterSpacing: 1 },
+} as const;
+
+/**
+ * Motion. Springy and a little overshot — "squish and pop" instead of a
+ * linear ease. Every primitive's press/entry animation should pull its
+ * config from here rather than hand-rolling spring numbers.
  */
 export const Motion = {
-  press: 140,
-  transition: 200,
-  entry: 260,
+  /** Press-in/out spring — snappy, slightly bouncy settle. */
+  springPress: { damping: 14, stiffness: 260, mass: 0.6 },
+  /** Entry/pop-in spring — more overshoot, feels like it bounced into place. */
+  springEntry: { damping: 11, stiffness: 180, mass: 0.7 },
   /** Scale applied to pressables while pressed. */
-  pressScale: 0.97,
+  pressScale: 0.94,
+  /** Non-spring fallback duration (ms), for things that must not bounce (progress fills). */
+  fill: 650,
 } as const;
 
 export const BottomTabInset = Platform.select({ ios: 50, android: 80 }) ?? 0;
 /**
- * The widest the content column is ever allowed to get.
- *
- * 800 was set to stop an iPad stretching a phone layout across the full
- * screen, but it doesn't: at 800 the measures are still too long to scan, a
- * progress bar for a 0-100 value runs over 600pt, and the hero opens a void
- * between the score and the ring. This is a single-column reading width — the
- * page should look composed and deliberately narrow on a tablet, not filled.
+ * The widest the content column is ever allowed to get — a single-column
+ * reading width so the page looks composed and deliberately narrow on a
+ * tablet, not filled edge-to-edge.
  */
 export const MaxContentWidth = 620;
 
 /**
  * The cap when a wide screen goes two-column. Two columns of roughly the
- * single-column measure, plus the gutter between them — capping a two-column
- * layout at the one-column width would just squeeze both halves.
+ * single-column measure, plus the gutter between them.
  */
 export const WideColumnWidth = 1000;

@@ -54,7 +54,7 @@ export default function WeeklyReviewScreen() {
 
         {existing?.completed_at ? (
           <Card style={styles.doneBanner}>
-            <Icon name="checkmark.seal.fill" size={18} tintColor={theme.success} />
+            <Icon name="ribbon" size={18} tintColor={theme.success} />
             <ThemedText type="small" themeColor="textSecondary" style={styles.doneText}>
               Already completed this week — saving again overwrites it.
             </ThemedText>
@@ -79,7 +79,7 @@ export default function WeeklyReviewScreen() {
                     }}
                     hitSlop={4}>
                     <Icon
-                      name={current != null && star <= current ? 'star.fill' : 'star'}
+                      name={current != null && star <= current ? 'star' : 'star-outline'}
                       size={24}
                       tintColor={current != null && star <= current ? theme.tint : theme.textSecondary}
                     />

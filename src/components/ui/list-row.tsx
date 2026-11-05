@@ -39,7 +39,7 @@ export function ListRow({
       </View>
       {trailing}
       {showChevron ? (
-        <Icon name="chevron.right" size={14} weight="semibold" tintColor={theme.textSecondary} />
+        <Icon name="chevron-forward" size={16} tintColor={theme.textSecondary} />
       ) : null}
     </View>
   );

@@ -1,5 +1,6 @@
 import { unstable_createElement } from 'react-native-web';
 
+import { CornerRadius } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
 import type { TimeFieldProps } from './time-field';
@@ -21,8 +22,8 @@ export function TimeField({ value, onChange }: TimeFieldProps) {
     },
     style: {
       fontSize: 16,
-      padding: 8,
-      borderRadius: 8,
+      padding: 10,
+      borderRadius: CornerRadius.small,
       borderWidth: 0,
       backgroundColor: theme.backgroundSelected,
       color: theme.text,

@@ -112,7 +112,7 @@ export function CheckboxRow({ title, checked, onToggle, disabled, color }: Check
           />
           <Animated.View style={markStyle}>
             <Icon
-              name={checked ? 'checkmark.circle.fill' : 'circle'}
+              name={checked ? 'checkmark-circle' : 'ellipse-outline'}
               size={26}
               tintColor={checked ? accent : theme.textSecondary}
             />

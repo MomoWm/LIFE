@@ -64,18 +64,18 @@ export default function WorkScreen() {
     symbol: IconName;
     target: number | null;
   }[] = [
-    { type: 'door', label: 'Doors', symbol: 'door.left.hand.open', target: targets?.doors_target ?? null },
+    { type: 'door', label: 'Doors', symbol: 'hand-left', target: targets?.doors_target ?? null },
     {
       type: 'interaction',
       label: 'Interactions',
-      symbol: 'person.2.fill',
+      symbol: 'people',
       target: targets?.interactions_target ?? 20,
     },
-    { type: 'pitch', label: 'Pitches', symbol: 'megaphone.fill', target: targets?.pitches_target ?? 8 },
+    { type: 'pitch', label: 'Pitches', symbol: 'megaphone', target: targets?.pitches_target ?? 8 },
     {
       type: 'appointment',
       label: 'Appointments',
-      symbol: 'calendar.badge.plus',
+      symbol: 'calendar',
       target: targets?.appointments_target ?? null,
     },
   ];
@@ -112,7 +112,7 @@ export default function WorkScreen() {
           headerRight: () => (
             <Link href="/work/funnel" asChild>
               <Pressable hitSlop={8}>
-                <Icon name="chart.bar.fill" size={18} tintColor={theme.textSecondary} />
+                <Icon name="bar-chart" size={18} tintColor={theme.textSecondary} />
               </Pressable>
             </Link>
           ),
@@ -202,7 +202,7 @@ export default function WorkScreen() {
         <Section title="Today's funnel" onPress={() => router.push('/work/funnel')}>
           {counts.door === 0 ? (
             <EmptyState
-              icon="chart.bar.fill"
+              icon="bar-chart"
               color={Domain.work}
               title="No doors yet"
               body="Tap a counter above and the funnel fills in as you go."
@@ -306,7 +306,7 @@ function CounterTile({
         <View style={styles.counterHeader}>
           <Icon name={symbol} size={15} tintColor={hitTarget ? Domain.work : theme.textTertiary} />
           {hitTarget ? (
-            <Icon name="checkmark.seal.fill" size={13} tintColor={theme.success} />
+            <Icon name="ribbon" size={13} tintColor={theme.success} />
           ) : null}
         </View>
         <ThemedText type="metric">{count}</ThemedText>

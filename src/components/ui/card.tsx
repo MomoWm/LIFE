@@ -1,30 +1,30 @@
-import { LinearGradient } from 'expo-linear-gradient';
 import { StyleSheet, View, type ViewProps } from 'react-native';
 
-import { CornerRadius, Spacing, Surface } from '@/constants/theme';
+import { CornerRadius, Shadow, Spacing } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
 
 type CardProps = ViewProps & {
-  /** One tonal step brighter — for the interactive/hero surface on a screen. */
+  /** One tonal step forward — for the interactive/hero surface on a screen. */
   raised?: boolean;
 };
 
 /**
- * The standard LIFE surface.
- *
- * A flat fill reads as cardboard. Real materials catch light: this is a
- * top-lit vertical gradient with a hairline specular edge along the top,
- * so every card looks like it's sitting under a light source rather than
- * being a painted rectangle. Depth comes from that light, never drop shadows.
+ * The standard LIFE surface: a flat white card lifted off the paper ground by
+ * a real, soft shadow rather than a lit gradient — the "sticker" look that
+ * reads as something you could pick up, not a painted panel. `raised` pushes
+ * the shadow one step further, for the one hero surface on a screen.
  */
 export function Card({ style, raised, children, ...rest }: CardProps) {
+  const theme = useTheme();
   return (
-    <View style={[styles.card, style]} {...rest}>
-      <LinearGradient
-        colors={raised ? Surface.cardRaised : Surface.card}
-        style={StyleSheet.absoluteFill}
-        pointerEvents="none"
-      />
-      <View style={styles.edge} pointerEvents="none" />
+    <View
+      style={[
+        styles.card,
+        { backgroundColor: theme.backgroundElement },
+        raised ? Shadow.raised : Shadow.resting,
+        style,
+      ]}
+      {...rest}>
       {children}
     </View>
   );
@@ -38,16 +38,6 @@ const styles = StyleSheet.create({
   card: {
     borderRadius: CornerRadius.large,
     padding: Spacing.four,
-    overflow: 'hidden',
-  },
-  // Specular top edge: brightest where light would strike, fading immediately.
-  edge: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: 1,
-    backgroundColor: Surface.edgeHighlight,
   },
   section: {
     gap: Spacing.two,

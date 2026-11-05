@@ -21,16 +21,16 @@ export default function Root({ children }: PropsWithChildren) {
         <title>LIFE</title>
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-title" content="LIFE" />
-        <meta name="theme-color" content={Colors.dark.background} />
+        <meta name="theme-color" content={Colors.light.background} />
         <link rel="manifest" href="/manifest.json" />
         <link rel="apple-touch-icon" sizes="152x152" href="/apple-touch-icon-152.png" />
         <link rel="apple-touch-icon" sizes="167x167" href="/apple-touch-icon-167.png" />
         <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
-        {/* Charcoal ground before the bundle loads — no white flash on launch —
-            plus the handful of rules that decide whether an installed PWA
-            actually fills the phone.
+        {/* Paper ground before the bundle loads — no flash of the wrong color
+            on launch — plus the handful of rules that decide whether an
+            installed PWA actually fills the phone.
 
             `overflow-x: hidden` is the one that matters most: a single element
             even slightly wider than the viewport makes iOS Safari treat the
@@ -47,7 +47,7 @@ export default function Root({ children }: PropsWithChildren) {
             __html: `
               html, body, #root {
                 height: 100%;
-                background-color: ${Colors.dark.background};
+                background-color: ${Colors.light.background};
               }
               html, body {
                 margin: 0;
