@@ -2,7 +2,7 @@ import { format, parseISO } from 'date-fns';
 import * as Haptics from '@/lib/haptics';
 import { Stack, router } from 'expo-router';
 import { Icon } from '@/components/ui/icon';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, TextInput, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
@@ -19,12 +19,28 @@ import { useTheme } from '@/hooks/use-theme';
 export default function WeeklyReviewScreen() {
   const theme = useTheme();
   const { data: goals } = useActiveGoals();
-  const { data: existing } = useThisWeeksReview();
+  const { data: existing, isPending: existingPending } = useThisWeeksReview();
   const save = useSaveWeeklyReview();
 
-  const [reflection, setReflection] = useState(existing?.reflection ?? '');
+  const [reflection, setReflection] = useState('');
   const [ratings, setRatings] = useState<Record<string, number | null>>({});
   const [notes, setNotes] = useState<Record<string, string>>({});
+  const [hydrated, setHydrated] = useState(false);
+
+  // This week's review (reflection, per-goal ratings/notes) loads async, after
+  // the fields below have already mounted — without this, re-opening an
+  // already-started review would show blank fields and "Save" would silently
+  // overwrite the real ratings/notes with nulls. Runs once, the first time
+  // the query settles, so it never clobbers what the person is mid-typing.
+  useEffect(() => {
+    if (existingPending || hydrated) return;
+    setReflection(existing?.reflection ?? '');
+    setRatings(Object.fromEntries((existing?.checkins ?? []).map((c) => [c.goal_id, c.rating])));
+    setNotes(
+      Object.fromEntries((existing?.checkins ?? []).map((c) => [c.goal_id, c.progress_note ?? '']))
+    );
+    setHydrated(true);
+  }, [existingPending, existing, hydrated]);
 
   const weekLabel = format(parseISO(weekStartIso(todayIso())), 'MMM d');
 
