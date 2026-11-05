@@ -196,7 +196,7 @@ export default function TodayScreen() {
                 Today
               </ThemedText>
             </View>
-            <SegmentRing segments={ringSegments} size={104} strokeWidth={9} />
+            <SegmentRing segments={ringSegments} size={104} strokeWidth={9} glow />
           </View>
 
           {/* Each category as a bar rather than a number, because the useful

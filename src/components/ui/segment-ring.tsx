@@ -55,6 +55,14 @@ export function SegmentRing({
   size = 148,
   strokeWidth = 10,
   gapDegrees = 5,
+  /**
+   * A soft color halo behind each filled arc — the ring radiating its own
+   * light rather than sitting flat on the card. Off by default: the smaller
+   * instances of this ring (stat rows, list previews) don't have the room
+   * for a glow to read as anything but mud; it's meant for the one hero ring
+   * on Home, at full size.
+   */
+  glow = false,
   children,
   style,
 }: {
@@ -62,6 +70,7 @@ export function SegmentRing({
   size?: number;
   strokeWidth?: number;
   gapDegrees?: number;
+  glow?: boolean;
   children?: React.ReactNode;
   style?: StyleProp<ViewStyle>;
 }) {
@@ -121,6 +130,7 @@ export function SegmentRing({
               color={seg.color}
               strokeWidth={strokeWidth}
               progress={progress}
+              glow={glow}
             />
           ) : null
         )}
@@ -139,6 +149,7 @@ function FillArc({
   color,
   strokeWidth,
   progress,
+  glow,
 }: {
   cx: number;
   r: number;
@@ -148,6 +159,7 @@ function FillArc({
   color: string;
   strokeWidth: number;
   progress: SharedValue<number>;
+  glow: boolean;
 }) {
   const full = arcPath(cx, cx, r, start, start + sweep * Math.min(1, score));
   const len = 2 * Math.PI * r * ((sweep * Math.min(1, score)) / 360);
@@ -159,14 +171,47 @@ function FillArc({
   }));
 
   return (
-    <AnimatedPath
-      d={full}
-      stroke={color}
-      strokeWidth={strokeWidth}
-      strokeLinecap="round"
-      strokeDasharray={len}
-      animatedProps={animatedProps}
-      fill="none"
-    />
+    <>
+      {/* The glow is faked, not filtered: react-native-svg doesn't carry
+          feGaussianBlur reliably to native, so this is two wider, dimmer
+          copies of the same stroke stacked underneath the real one instead
+          of one blurred layer — cheap, and identical on web and native.
+          Same animatedProps object reused on all three: they share one
+          underlying arc, so the halo can never reveal more than the real
+          fill has animated in. */}
+      {glow ? (
+        <>
+          <AnimatedPath
+            d={full}
+            stroke={color}
+            strokeWidth={strokeWidth * 2.8}
+            strokeLinecap="round"
+            strokeDasharray={len}
+            animatedProps={animatedProps}
+            fill="none"
+            opacity={0.14}
+          />
+          <AnimatedPath
+            d={full}
+            stroke={color}
+            strokeWidth={strokeWidth * 1.7}
+            strokeLinecap="round"
+            strokeDasharray={len}
+            animatedProps={animatedProps}
+            fill="none"
+            opacity={0.22}
+          />
+        </>
+      ) : null}
+      <AnimatedPath
+        d={full}
+        stroke={color}
+        strokeWidth={strokeWidth}
+        strokeLinecap="round"
+        strokeDasharray={len}
+        animatedProps={animatedProps}
+        fill="none"
+      />
+    </>
   );
 }

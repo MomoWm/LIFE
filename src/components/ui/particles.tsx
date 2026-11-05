@@ -42,6 +42,9 @@ const PLANES = [
 /** Stars that pulse. A handful, not the field — see the twinkle note below. */
 const TWINKLE_COUNT = 14;
 
+/** Rare by design — see the Comet component for why. */
+const COMET_COUNT = 2;
+
 type Star = { x: number; y: number; r: number; o: number; phase: number };
 
 /**
@@ -136,6 +139,115 @@ function Twinkle({ star, clock }: { star: Star; clock: { value: number } }) {
   return <AnimatedCircle cx={`${star.x * 100}%`} cy={star.y} r={star.r} fill={STAR} animatedProps={props} />;
 }
 
+/** A comet's timing only — see Comet for why its path isn't part of this. */
+type CometTiming = {
+  /** Seconds to wait before this comet's first run, so two comets don't launch together. */
+  startDelay: number;
+  /** Seconds between the end of one run and the start of the next. */
+  interval: number;
+};
+
+/**
+ * A comet: a bright head with a short fading tail, crossing part of the sky
+ * and gone in under a second, then not seen again for a long, randomised
+ * while.
+ *
+ * This is the one deliberately eye-catching thing in the field — everything
+ * else here (the drifting planes, the slow twinkle) is tuned to sit below
+ * notice. A comet earns the attention precisely by being rare: default to
+ * roughly one every half-minute per slot, long enough that catching one
+ * reads as a small reward for looking up, not as a loop a user starts
+ * tracking.
+ *
+ * The path is re-rolled on every single run rather than fixed once. The
+ * first version picked one path per comet for the session, the same
+ * reasoning as the star planes' fixed layout — but that reasoning doesn't
+ * transfer: the planes are a static backdrop that would look glitchy if it
+ * rearranged itself, while a comet is a one-off event, and a real one never
+ * retraces its last streak. Fixing the path also meant fixing which screen
+ * content it would be stuck behind — particles sit below every card, and a
+ * comet whose one permanent path happened to pass under Home's hero card
+ * would never be seen at all. A fresh path each time means a bad draw is
+ * one run, not forever.
+ *
+ * The tail is faked rather than filtered, same reasoning as everywhere else
+ * in this file — react-native-svg's filter support doesn't reliably reach
+ * native, so a pair of trailing circles at shrinking radius and opacity
+ * stand in for a blurred streak.
+ */
+function Comet({ timing, width, height }: { timing: CometTiming; width: number; height: number }) {
+  const t = useSharedValue(0);
+  const x1 = useSharedValue(0);
+  const y1 = useSharedValue(0);
+  const x2 = useSharedValue(0);
+  const y2 = useSharedValue(0);
+
+  useEffect(() => {
+    let cancelled = false;
+    let timer: ReturnType<typeof setTimeout>;
+    // Re-armed with a fresh randomised gap after every run, rather than a
+    // fixed repeating interval — an evenly-spaced "rare" event is what makes
+    // it start to feel like a metronome instead of a chance sighting.
+    const scheduleNext = (waitSeconds: number) => {
+      timer = setTimeout(() => {
+        if (cancelled) return;
+        // Left-to-right diagonal, biased to the middle band of the screen —
+        // clear of the status bar / top tab bar above and the home
+        // indicator / bottom inset below, but otherwise free to land
+        // anywhere, including squarely behind a card. That's fine here: this
+        // run was the one chance this draw got, the next one gets another.
+        const newY1 = height * (0.12 + Math.random() * 0.62);
+        x1.value = width * Math.random() * 0.3;
+        y1.value = newY1;
+        x2.value = width * (0.55 + Math.random() * 0.45);
+        y2.value = newY1 + height * (0.04 + Math.random() * 0.08);
+        t.value = 0;
+        t.value = withTiming(1, { duration: 850, easing: Easing.in(Easing.quad) });
+        scheduleNext(timing.interval * (0.7 + Math.random() * 0.6));
+      }, waitSeconds * 1000);
+    };
+    scheduleNext(timing.startDelay);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [timing, width, height, t, x1, y1, x2, y2]);
+
+  const headProps = useAnimatedProps(() => {
+    const p = t.value;
+    // Fast across the middle, soft at both ends — a comet that moved at a
+    // constant rate would read as mechanical rather than as a streak of light.
+    const eased = p < 0.5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2;
+    return {
+      cx: x1.value + (x2.value - x1.value) * eased,
+      cy: y1.value + (y2.value - y1.value) * eased,
+      // Fades in over the first tenth, holds, fades out over the last quarter —
+      // never a hard pop in or out.
+      opacity: p < 0.1 ? p / 0.1 : p > 0.75 ? Math.max(0, (1 - p) / 0.25) : 1,
+    };
+  });
+
+  const tailProps = useAnimatedProps(() => {
+    // A fixed step behind the head along the same eased curve — not a
+    // constant pixel offset, which would stretch the tail out unrealistically
+    // during the fast middle section and bunch it up at the slow ends.
+    const p = Math.max(0, t.value - 0.08);
+    const eased = p < 0.5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2;
+    return {
+      cx: x1.value + (x2.value - x1.value) * eased,
+      cy: y1.value + (y2.value - y1.value) * eased,
+      opacity: t.value < 0.1 ? t.value / 0.1 : t.value > 0.75 ? Math.max(0, (1 - t.value) / 0.25) : 0.5,
+    };
+  });
+
+  return (
+    <>
+      <AnimatedCircle r={0.9} fill={STAR} animatedProps={tailProps} />
+      <AnimatedCircle r={1.6} fill={STAR} animatedProps={headProps} />
+    </>
+  );
+}
+
 /**
  * A starfield behind the whole app.
  *
@@ -163,6 +275,15 @@ export function Particles() {
     }));
   }, [height]);
 
+  // Only the timing is fixed per comet slot; the path is re-rolled on every
+  // run (see Comet). Staggered start delays keep the two slots from ever
+  // launching together, which would read as a single event splitting in two
+  // rather than as two separate sightings.
+  const cometTimings = useMemo<CometTiming[]>(
+    () => Array.from({ length: COMET_COUNT }, (_, i) => ({ startDelay: 8 + i * 15, interval: 30 + i * 8 })),
+    []
+  );
+
   useEffect(() => {
     clock.value = withRepeat(withTiming(1, { duration: 7000, easing: Easing.linear }), -1, false);
   }, [clock]);
@@ -186,6 +307,9 @@ export function Particles() {
       ))}
       {twinklers.map((star, i) => (
         <Twinkle key={i} star={star} clock={clock} />
+      ))}
+      {cometTimings.map((timing, i) => (
+        <Comet key={i} timing={timing} width={width} height={height} />
       ))}
       {/* The sky belongs above the content, not behind the sentences.
           Sections in this app sit directly on the ground with no fill of their
