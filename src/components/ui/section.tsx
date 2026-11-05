@@ -42,7 +42,7 @@ export function Section({ title, trailing, onPress, children, style, contentStyl
         )}
         {trailing}
         {onPress ? (
-          <Icon name="chevron.right" size={12} weight="semibold" tintColor={theme.textTertiary} />
+          <Icon name="chevron-forward" size={14} tintColor={theme.textTertiary} />
         ) : null}
       </View>
     ) : null;

@@ -6,6 +6,7 @@ import { StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
+import { Blob } from '@/components/ui/blob';
 import { Card } from '@/components/ui/card';
 import { CheckboxRow } from '@/components/ui/checkbox-row';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -16,7 +17,7 @@ import { SegmentRing, type RingSegment } from '@/components/ui/segment-ring';
 import { Screen, useIsWide } from '@/components/ui/screen';
 import { Section, SectionDivider } from '@/components/ui/section';
 import { Stat } from '@/components/ui/stat';
-import { Domain, Spacing } from '@/constants/theme';
+import { CornerRadius, Domain, Spacing } from '@/constants/theme';
 import { todayIso } from '@/lib/dates';
 import { PRAYER_LABELS, computePrayerTimes, nextPrayer } from '@/lib/prayerTimes/adhanClient';
 import { todayPhase } from '@/lib/score/todayPhase';
@@ -167,6 +168,12 @@ export default function TodayScreen() {
       <Screen wideLayout="columns">
         {/* ---- Hero: the one Card on the screen, so it reads as the anchor ---- */}
         <Card raised style={styles.hero}>
+          {/* A clipped inner wrapper, not the Card itself — Card's own
+              rounded corners carry the shadow now, and a shadow and a clip
+              can't share one view (the clip would cut the shadow off). */}
+          <View style={styles.heroBackdrop} pointerEvents="none">
+            <Blob size={240} color={Domain.routine} opacity={0.14} rotation={-18} style={styles.heroBlob} />
+          </View>
           <View style={styles.heroTop}>
             <View style={styles.heroHeadline}>
               <ThemedText type="label" themeColor="textTertiary">
@@ -253,7 +260,7 @@ export default function TodayScreen() {
           onPress={() => router.push('/five45')}>
           {phaseTasks.length === 0 ? (
             <EmptyState
-              icon="checklist"
+              icon="list"
               color={Domain.routine}
               title="Nothing set for today"
               body="Build it once, it repeats on every day of this type."
@@ -280,7 +287,7 @@ export default function TodayScreen() {
                rows rather than four isolated cards ---- */}
         <Section title="Today at a glance">
           <GlanceRow
-            symbol="moon.stars.fill"
+            symbol="moon"
             color={Domain.prayer}
             title="Prayer"
             detail={
@@ -300,7 +307,7 @@ export default function TodayScreen() {
           />
           <SectionDivider inset={44} />
           <GlanceRow
-            symbol="briefcase.fill"
+            symbol="briefcase"
             color={Domain.work}
             title="Work"
             detail={
@@ -326,7 +333,7 @@ export default function TodayScreen() {
           />
           <SectionDivider inset={44} />
           <GlanceRow
-            symbol="dumbbell.fill"
+            symbol="barbell"
             color={Domain.training}
             title="Training"
             detail={
@@ -342,7 +349,7 @@ export default function TodayScreen() {
             <>
               <SectionDivider inset={44} />
               <GlanceRow
-                symbol="moon.zzz.fill"
+                symbol="bed"
                 color={Domain.sleep}
                 title="Sleep"
                 detail="Last night still unlogged"
@@ -397,7 +404,7 @@ function GlanceRow({
                 {trailing}
               </ThemedText>
             ) : null}
-            <Icon name="chevron.right" size={12} weight="semibold" tintColor={theme.textTertiary} />
+            <Icon name="chevron-forward" size={14} tintColor={theme.textTertiary} />
           </View>
           <ThemedText type="small" themeColor="textTertiary">
             {detail}
@@ -420,6 +427,16 @@ const styles = StyleSheet.create({
   },
   hero: {
     gap: Spacing.four,
+  },
+  heroBackdrop: {
+    ...StyleSheet.absoluteFillObject,
+    borderRadius: CornerRadius.large,
+    overflow: 'hidden',
+  },
+  heroBlob: {
+    position: 'absolute',
+    top: -90,
+    right: -70,
   },
   heroTop: {
     flexDirection: 'row',
@@ -490,9 +507,9 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.two + 2,
   },
   glanceIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 10,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
   },

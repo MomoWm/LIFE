@@ -1,94 +1,124 @@
 import { Tabs } from 'expo-router';
-import { StyleSheet } from 'react-native';
+import { useEffect } from 'react';
+import { StyleSheet, View } from 'react-native';
+import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { HapticTab } from '@/components/haptic-tab';
-import { ChromeBackground } from '@/components/ui/chrome-background';
 import { Icon, type IconName } from '@/components/ui/icon';
-import { Family } from '@/constants/theme';
+import { CornerRadius, Family, Motion, Shadow, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
-function TabIcon({ name, color }: { name: IconName; color: string }) {
-  return <Icon name={name} size={26} tintColor={color} />;
+function TabIcon({ name, color, focused }: { name: IconName; color: string; focused: boolean }) {
+  const theme = useTheme();
+  const scale = useSharedValue(focused ? 1 : 0.86);
+
+  // The whole point of a floating pill tab bar is that picking a tab feels
+  // like pressing a button, not just recoloring a glyph — the active icon
+  // pops a little larger on a filled pill behind it.
+  useEffect(() => {
+    scale.value = withSpring(focused ? 1 : 0.86, Motion.springEntry);
+  }, [focused, scale]);
+  const style = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
+
+  return (
+    <Animated.View
+      style={[styles.iconWrap, focused && { backgroundColor: theme.tint }, style]}>
+      <Icon name={name} size={22} tintColor={focused ? theme.onTint : color} />
+    </Animated.View>
+  );
 }
 
 export default function AppTabs() {
   const theme = useTheme();
+  const insets = useSafeAreaInsets();
 
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
-        // The tab navigator paints an opaque scene by default, which covers
-        // the ambient wash mounted beneath it in the tabs layout.
         sceneStyle: { backgroundColor: 'transparent' },
-        // Not decoration — this is what hides the tabs you aren't looking at.
-        //
-        // Inactive scenes are normally detached by react-native-screens, but
-        // that library disables itself off-native, so on web every tab that has
-        // ever been visited stays mounted as an absolutely-filled view. The
-        // only thing separating them is z-order, and since the scenes are
-        // transparent (above) so the wash can show through, z-order hides
-        // nothing: Home and Routine paint over each other, word on word, and it
-        // gets worse with every tab visited. Setting an animation runs the
-        // scene interpolator, which drives unfocused scenes to opacity 0 — the
-        // one lever that hides them without giving the scenes an opaque
-        // background, which would blank the starfield behind them.
         animation: 'fade',
         tabBarButton: HapticTab,
         tabBarActiveTintColor: theme.text,
         tabBarInactiveTintColor: theme.textTertiary,
-        tabBarBackground: () => <ChromeBackground />,
-        // Tabs across the top rather than the bottom. The bar takes real
-        // layout space here instead of floating: at the top it also has to own
-        // the status-bar inset, and an absolutely-positioned bar would leave
-        // the notch painted by whatever happened to be behind it.
-        tabBarPosition: 'top',
-        // Navigation chrome doesn't inherit ThemedText's typography.
+        // A real floating pill, not a painted strip across the bottom — it
+        // sits inset from every edge with its own shadow, so it reads as a
+        // tactile object resting on the page rather than chrome bolted to it.
+        tabBarBackground: () => (
+          <View style={[StyleSheet.absoluteFill, styles.pill, { backgroundColor: theme.backgroundElement }]} />
+        ),
+        tabBarShowLabel: false,
+        tabBarStyle: [
+          styles.bar,
+          Shadow.raised,
+          { bottom: insets.bottom + Spacing.two, backgroundColor: 'transparent', borderTopWidth: 0 },
+        ],
+        tabBarItemStyle: styles.item,
         tabBarLabelStyle: { fontFamily: Family.medium, letterSpacing: 0.1 },
-        tabBarStyle: {
-          backgroundColor: 'transparent',
-          // The rule belongs on the edge facing the content, which swapped
-          // ends along with the bar.
-          borderTopWidth: 0,
-          borderBottomWidth: StyleSheet.hairlineWidth,
-          borderBottomColor: theme.separator,
-        },
       }}>
       <Tabs.Screen
         name="index"
         options={{
           title: 'Home',
-          tabBarIcon: ({ color }) => <TabIcon name="house.fill" color={color} />,
+          tabBarIcon: ({ color, focused }) => <TabIcon name="home" color={color} focused={focused} />,
         }}
       />
       <Tabs.Screen
         name="five45"
         options={{
           title: 'Routine',
-          tabBarIcon: ({ color }) => <TabIcon name="checklist" color={color} />,
+          tabBarIcon: ({ color, focused }) => <TabIcon name="list" color={color} focused={focused} />,
         }}
       />
       <Tabs.Screen
         name="prayer"
         options={{
           title: 'Prayer',
-          tabBarIcon: ({ color }) => <TabIcon name="moon.stars.fill" color={color} />,
+          tabBarIcon: ({ color, focused }) => <TabIcon name="moon" color={color} focused={focused} />,
         }}
       />
       <Tabs.Screen
         name="work"
         options={{
           title: 'Work',
-          tabBarIcon: ({ color }) => <TabIcon name="briefcase.fill" color={color} />,
+          tabBarIcon: ({ color, focused }) => <TabIcon name="briefcase" color={color} focused={focused} />,
         }}
       />
       <Tabs.Screen
         name="more"
         options={{
           title: 'More',
-          tabBarIcon: ({ color }) => <TabIcon name="ellipsis" color={color} />,
+          tabBarIcon: ({ color, focused }) => (
+            <TabIcon name="ellipsis-horizontal" color={color} focused={focused} />
+          ),
         }}
       />
     </Tabs>
   );
 }
+
+const styles = StyleSheet.create({
+  bar: {
+    position: 'absolute',
+    left: Spacing.four,
+    right: Spacing.four,
+    height: 64,
+    borderRadius: CornerRadius.pill,
+    paddingTop: 0,
+    elevation: 8,
+  },
+  pill: {
+    borderRadius: CornerRadius.pill,
+  },
+  item: {
+    paddingTop: 0,
+  },
+  iconWrap: {
+    width: 44,
+    height: 44,
+    borderRadius: CornerRadius.pill,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+});

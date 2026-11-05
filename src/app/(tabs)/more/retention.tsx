@@ -37,7 +37,7 @@ export default function RetentionScreen() {
       <Screen>
         {stats?.currentStreakDays === null ? (
           <Card style={styles.startCard}>
-            <Icon name="bolt.shield.fill" size={32} tintColor={theme.tint} />
+            <Icon name="shield-checkmark" size={32} tintColor={theme.tint} />
             <ThemedText type="subtitle" style={styles.startTitle}>
               Start your streak
             </ThemedText>

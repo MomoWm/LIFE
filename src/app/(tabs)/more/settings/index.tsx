@@ -70,7 +70,7 @@ export default function SettingsScreen() {
           <ListRow
             title="Notifications"
             subtitle="Prayer times, morning nudge, weekly review"
-            leading={<Icon name="bell.badge.fill" size={19} tintColor={theme.textSecondary} />}
+            leading={<Icon name="notifications" size={19} tintColor={theme.textSecondary} />}
             showChevron
             onPress={() => router.push('/more/settings/notifications')}
           />
@@ -78,7 +78,7 @@ export default function SettingsScreen() {
           <ListRow
             title="Prayer settings"
             subtitle="Location, calculation method, madhab"
-            leading={<Icon name="moon.stars.fill" size={19} tintColor={theme.textSecondary} />}
+            leading={<Icon name="moon" size={19} tintColor={theme.textSecondary} />}
             showChevron
             onPress={() => router.push('/more/settings/prayer')}
           />

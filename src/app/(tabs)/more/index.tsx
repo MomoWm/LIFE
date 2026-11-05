@@ -6,7 +6,7 @@ import Animated, { FadeInDown } from 'react-native-reanimated';
 import { ThemedText } from '@/components/themed-text';
 import { Screen } from '@/components/ui/screen';
 import { Section, SectionDivider } from '@/components/ui/section';
-import { Domain, Motion, Spacing } from '@/constants/theme';
+import { Domain, Spacing } from '@/constants/theme';
 import { todayIso } from '@/lib/dates';
 import { formatDuration, sleepDurationMinutes } from '@/lib/sleep/sleep';
 import { splitForDay } from '@/lib/workout/split';
@@ -55,21 +55,21 @@ export default function MoreScreen() {
         {
           href: '/more/workout',
           title: 'Workout',
-          symbol: 'dumbbell.fill',
+          symbol: 'barbell',
           color: Domain.training,
           preview: workoutPreview,
         },
         {
           href: '/more/sleep',
           title: 'Sleep',
-          symbol: 'moon.zzz.fill',
+          symbol: 'bed',
           color: Domain.sleep,
           preview: sleepPreview,
         },
         {
           href: '/more/retention',
           title: 'Discipline',
-          symbol: 'bolt.shield.fill',
+          symbol: 'shield-checkmark',
           color: Domain.routine,
           preview: disciplinePreview,
         },
@@ -81,7 +81,7 @@ export default function MoreScreen() {
         {
           href: '/more/insights',
           title: 'Insights',
-          symbol: 'chart.xyaxis.line',
+          symbol: 'stats-chart',
           preview: insightsPreview,
         },
       ],
@@ -89,7 +89,7 @@ export default function MoreScreen() {
     {
       title: 'App',
       items: [
-        { href: '/more/settings', title: 'Settings', symbol: 'gearshape.fill', preview: '' },
+        { href: '/more/settings', title: 'Settings', symbol: 'settings', preview: '' },
       ],
     },
   ];
@@ -101,7 +101,7 @@ export default function MoreScreen() {
         {groups.map((group, gi) => (
           <Animated.View
             key={group.title}
-            entering={FadeInDown.duration(Motion.entry).delay(gi * 50)}>
+            entering={FadeInDown.springify().damping(18).delay(gi * 70)}>
             <Section title={group.title} contentStyle={styles.rows}>
               {group.items.map((item, i) => (
                 <View key={item.title}>
@@ -136,7 +136,7 @@ function MoreRow({ item }: { item: MoreLink }) {
             {item.preview}
           </ThemedText>
         ) : null}
-        <Icon name="chevron.right" size={12} weight="semibold" tintColor={theme.textTertiary} />
+        <Icon name="chevron-forward" size={14} tintColor={theme.textTertiary} />
       </View>
     </Pressable>
   );
@@ -153,9 +153,9 @@ const styles = StyleSheet.create({
     minHeight: 56,
   },
   iconBadge: {
-    width: 32,
-    height: 32,
-    borderRadius: 10,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
   },

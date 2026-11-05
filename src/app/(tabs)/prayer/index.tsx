@@ -110,7 +110,7 @@ export default function PrayerScreen() {
       <Screen>
         {!hasLocation ? (
           <Card raised style={styles.locationCard}>
-            <Icon name="location.circle.fill" size={26} tintColor={Domain.prayer} />
+            <Icon name="navigate-circle" size={26} tintColor={Domain.prayer} />
             <ThemedText type="subtitle">Set your location</ThemedText>
             <ThemedText type="small" themeColor="textSecondary">
               Prayer times are computed on-device from your coordinates — nothing is sent
@@ -279,8 +279,8 @@ function PrayerRow({
         </ThemedText>
       </View>
       {statusButton('on_time', 'checkmark', theme.success, 'on time')}
-      {statusButton('late', 'clock', theme.warning, 'late')}
-      {statusButton('missed', 'xmark', theme.danger, 'missed')}
+      {statusButton('late', 'time-outline', theme.warning, 'late')}
+      {statusButton('missed', 'close', theme.danger, 'missed')}
     </View>
   );
 }

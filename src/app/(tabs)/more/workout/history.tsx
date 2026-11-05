@@ -38,7 +38,7 @@ export default function WorkoutHistoryScreen() {
                 </ThemedText>
               </View>
               {session.ended_at ? (
-                <Icon name="checkmark.circle.fill" size={18} tintColor={theme.success} />
+                <Icon name="checkmark-circle" size={18} tintColor={theme.success} />
               ) : null}
             </Card>
           </Animated.View>

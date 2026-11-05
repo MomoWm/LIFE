@@ -30,7 +30,7 @@ import { Colors } from '@/constants/theme';
 export function ChromeBackground({ style }: { style?: StyleProp<ViewStyle> }) {
   return (
     <View style={[StyleSheet.absoluteFill, style]}>
-      <BlurView tint="dark" intensity={80} style={StyleSheet.absoluteFill} />
+      <BlurView tint="light" intensity={80} style={StyleSheet.absoluteFill} />
       <View style={[StyleSheet.absoluteFill, styles.scrim]} />
     </View>
   );
@@ -38,7 +38,7 @@ export function ChromeBackground({ style }: { style?: StyleProp<ViewStyle> }) {
 
 const styles = StyleSheet.create({
   scrim: {
-    backgroundColor: Colors.dark.background,
-    opacity: 0.72,
+    backgroundColor: Colors.light.background,
+    opacity: 0.8,
   },
 });

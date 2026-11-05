@@ -3,7 +3,7 @@ import type { NativeStackNavigationOptions } from '@react-navigation/native-stac
 import { ChromeBackground } from '@/components/ui/chrome-background';
 import { Colors, Family } from '@/constants/theme';
 
-type Theme = typeof Colors.dark;
+type Theme = typeof Colors.light;
 
 /**
  * The one set of stack options every route group uses.

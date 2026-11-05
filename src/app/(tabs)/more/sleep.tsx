@@ -195,7 +195,7 @@ export default function SleepScreen() {
                 accessibilityRole="button"
                 accessibilityLabel={`Quality ${star} of 5`}>
                 <Icon
-                  name={quality != null && star <= quality ? 'star.fill' : 'star'}
+                  name={quality != null && star <= quality ? 'star' : 'star-outline'}
                   size={20}
                   tintColor={quality != null && star <= quality ? Domain.sleep : theme.textTertiary}
                 />

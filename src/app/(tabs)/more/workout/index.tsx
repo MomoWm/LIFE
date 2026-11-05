@@ -43,7 +43,7 @@ export default function WorkoutScreen() {
           headerRight: () => (
             <Link href="/more/workout/history" asChild>
               <Pressable hitSlop={8}>
-                <Icon name="clock.arrow.circlepath" size={20} tintColor={theme.tint} />
+                <Icon name="time" size={20} tintColor={theme.tint} />
               </Pressable>
             </Link>
           ),
@@ -52,7 +52,7 @@ export default function WorkoutScreen() {
       <Screen>
         {cycleDay === null ? (
           <Card style={styles.setupCard}>
-            <Icon name="dumbbell.fill" size={30} tintColor={theme.tint} />
+            <Icon name="barbell" size={30} tintColor={theme.tint} />
             <ThemedText type="subtitle" style={styles.setupTitle}>
               Start your 8-day cycle
             </ThemedText>
@@ -157,7 +157,7 @@ function ActiveSession({
         <Pressable
           onPress={() => setPickerOpen((open) => !open)}
           style={({ pressed }) => [styles.addRow, pressed && styles.pressed]}>
-          <Icon name={pickerOpen ? 'chevron.down' : 'plus.circle.fill'} size={20} tintColor={theme.tint} />
+          <Icon name={pickerOpen ? 'chevron-down' : 'add-circle'} size={20} tintColor={theme.tint} />
           <ThemedText type="smallBold" style={{ color: theme.tint }}>
             Add exercise
           </ThemedText>
@@ -222,7 +222,7 @@ function ExerciseCard({ entry }: { entry: SessionEntry }) {
         <Pressable style={({ pressed }) => (pressed ? styles.pressed : undefined)}>
           <View style={styles.exerciseHeader}>
             <ThemedText type="smallBold">{entry.exercise.name}</ThemedText>
-            <Icon name="chart.xyaxis.line" size={16} tintColor={theme.tint} />
+            <Icon name="stats-chart" size={16} tintColor={theme.tint} />
           </View>
         </Pressable>
       </Link>
@@ -275,7 +275,7 @@ function ExerciseCard({ entry }: { entry: SessionEntry }) {
             { backgroundColor: theme.tint },
             pressed && styles.pressed,
           ]}>
-          <Icon name="plus" size={16} tintColor={theme.onTint} />
+          <Icon name="add" size={16} tintColor={theme.onTint} />
         </Pressable>
       </View>
     </Card>

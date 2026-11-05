@@ -1,11 +1,11 @@
 import { Colors } from '@/constants/theme';
 
 /**
- * v1 ships dark-only by design decision (see DECISIONS.md): the LIFE identity
- * is a dark command center, and shipping one polished theme beats two
- * half-tuned ones. Swap back to `Colors[useColorScheme() ?? 'dark']` when a
- * light mode earns its place.
+ * Ships light-only by design: the LIFE identity is now a warm, playful paper
+ * surface, and shipping one polished theme beats two half-tuned ones. Swap
+ * back to `Colors[useColorScheme() ?? 'light']` when a dark mode earns its
+ * place.
  */
 export function useTheme() {
-  return Colors.dark;
+  return Colors.light;
 }

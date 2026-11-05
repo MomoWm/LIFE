@@ -64,7 +64,7 @@ export default function PrayerSettingsScreen() {
       <Screen>
         <Card style={styles.card}>
           <View style={styles.locationRow}>
-            <Icon name="location.fill" size={18} tintColor={theme.tint} />
+            <Icon name="location" size={18} tintColor={theme.tint} />
             <View style={styles.locationText}>
               <ThemedText type="smallBold">
                 {profile?.location_label ?? 'Location not set'}
