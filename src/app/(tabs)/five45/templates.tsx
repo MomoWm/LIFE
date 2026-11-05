@@ -22,6 +22,7 @@ export default function TemplatesScreen() {
   const theme = useTheme();
   const [dayType, setDayType] = useState<DayType>('standard');
   const { data } = useDayTemplate(dayType);
+  const tasksLoaded = !!data;
   const saveTask = useSaveTemplateTask();
 
   const taskTitle = (kind: 'wake' | 'eod', position: number) =>
@@ -66,6 +67,7 @@ export default function TemplatesScreen() {
             heading="Morning 5 — the second you wake up"
             kind="wake"
             dayType={dayType}
+            tasksLoaded={tasksLoaded}
             taskTitle={taskTitle}
             onSave={(kind, position, title) => saveTask.mutate({ dayType, kind, position, title })}
           />
@@ -73,6 +75,7 @@ export default function TemplatesScreen() {
             heading="5 Non-negotiables — before sleep"
             kind="eod"
             dayType={dayType}
+            tasksLoaded={tasksLoaded}
             taskTitle={taskTitle}
             onSave={(kind, position, title) => saveTask.mutate({ dayType, kind, position, title })}
           />
@@ -86,12 +89,14 @@ function TemplateSection({
   heading,
   kind,
   dayType,
+  tasksLoaded,
   taskTitle,
   onSave,
 }: {
   heading: string;
   kind: 'wake' | 'eod';
   dayType: DayType;
+  tasksLoaded: boolean;
   taskTitle: (kind: 'wake' | 'eod', position: number) => string;
   onSave: (kind: 'wake' | 'eod', position: number, title: string) => void;
 }) {
@@ -100,8 +105,12 @@ function TemplateSection({
       <ThemedText type="smallBold">{heading}</ThemedText>
       {[1, 2, 3, 4, 5].map((position) => (
         <TaskInput
-          // Remount when switching day types so drafts don't leak across templates.
-          key={`${dayType}-${kind}-${position}`}
+          // Remounts on day-type switch (drafts shouldn't leak across
+          // templates) and once more when `tasksLoaded` flips true — an
+          // uncontrolled TextInput only reads `initial` at mount, so a field
+          // that first mounts while the query is still pending would
+          // otherwise stay blank forever even after the real title arrives.
+          key={`${dayType}-${kind}-${position}-${tasksLoaded}`}
           position={position}
           initial={taskTitle(kind, position)}
           onSave={(title) => onSave(kind, position, title)}

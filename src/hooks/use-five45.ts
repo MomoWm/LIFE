@@ -78,13 +78,25 @@ export function useSaveTemplateTask() {
   });
 }
 
-export type Five45Today = {
+type Five45TodayData = {
   dayType: DayType;
   tasks: TemplateTaskRow[];
   completions: TaskCompletionRow[];
+};
+
+export type Five45Today = Five45TodayData & {
   completedTaskIds: Set<string>;
 };
 
+/**
+ * `completedTaskIds` is derived via `select`, not stored in the queryFn's
+ * result. The persisted query cache round-trips through JSON (the
+ * AsyncStorage persister's serialize/deserialize), which silently turns a
+ * `Set` into `{}` — any `Set` or `Map` in a queryFn's return value would
+ * come back from a restored cache missing every method. `select` runs
+ * client-side on top of the raw (JSON-safe) cached data, so the Set is
+ * rebuilt fresh every time, restore included.
+ */
 export function useFive45Today() {
   const userId = useUserId();
   const date = todayIso();
@@ -92,16 +104,15 @@ export function useFive45Today() {
 
   return useQuery({
     queryKey: queryKeys.five45Today(userId, date),
-    queryFn: async (): Promise<Five45Today> => {
+    queryFn: async (): Promise<Five45TodayData> => {
       const { tasks } = await fetchTemplateWithTasks(dayType);
       const completions = await taskCompletions.select((c) => c.date === date);
-      return {
-        dayType,
-        tasks,
-        completions,
-        completedTaskIds: new Set(completions.map((c) => c.template_task_id)),
-      };
+      return { dayType, tasks, completions };
     },
+    select: (data): Five45Today => ({
+      ...data,
+      completedTaskIds: new Set(data.completions.map((c) => c.template_task_id)),
+    }),
   });
 }
 
@@ -127,15 +138,22 @@ export function useToggleTask() {
     },
     onMutate: async (input) => {
       await queryClient.cancelQueries({ queryKey: key });
-      const previous = queryClient.getQueryData<Five45Today>(key);
+      // getQueryData/setQueryData read and write the raw cached data, from
+      // before the hook's `select` runs — completions, not a Set.
+      const previous = queryClient.getQueryData<Five45TodayData>(key);
       if (previous) {
-        const next = new Set(previous.completedTaskIds);
-        if (input.completed) {
-          next.delete(input.taskId);
-        } else {
-          next.add(input.taskId);
-        }
-        queryClient.setQueryData<Five45Today>(key, { ...previous, completedTaskIds: next });
+        const completions = input.completed
+          ? previous.completions.filter((c) => c.template_task_id !== input.taskId)
+          : [
+              ...previous.completions,
+              {
+                id: `optimistic-${input.taskId}`,
+                date,
+                template_task_id: input.taskId,
+                completed_at: new Date().toISOString(),
+              },
+            ];
+        queryClient.setQueryData<Five45TodayData>(key, { ...previous, completions });
       }
       return { previous };
     },
