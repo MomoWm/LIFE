@@ -11,9 +11,8 @@ import {
   type ViewStyle,
 } from 'react-native';
 import Animated, { FadeInDown, useReducedMotion } from 'react-native-reanimated';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { BottomTabInset, MaxContentWidth, Spacing, WideBreakpoint, WideColumnWidth } from '@/constants/theme';
+import { MaxContentWidth, Spacing, WideBreakpoint, WideColumnWidth } from '@/constants/theme';
 
 type ScreenProps = PropsWithChildren<{
   contentStyle?: StyleProp<ViewStyle>;
@@ -54,7 +53,6 @@ export function useIsWide() {
  */
 export function Screen({ children, contentStyle, wideLayout = 'single' }: ScreenProps) {
   const headerHeight = useContext(HeaderHeightContext) ?? 0;
-  const insets = useSafeAreaInsets();
   const isWide = useIsWide();
   const reduceMotion = useReducedMotion();
   // The tab bar is a flex sibling above the scene container, so every screen
@@ -110,10 +108,10 @@ export function Screen({ children, contentStyle, wideLayout = 'single' }: Screen
         styles.outer,
         isWide && styles.outerWide,
         topPad > 0 && { paddingTop: topPad },
-        // The tab bar now floats above the bottom edge instead of taking
-        // layout space, so content needs explicit clearance for it on top of
-        // the home-indicator/gesture-nav inset.
-        { paddingBottom: insets.bottom + BottomTabInset + Spacing.three },
+        // The tab bar is a normal flex sibling below the scene (see
+        // app-tabs.tsx), so it already reserves its own space — this is
+        // just breathing room at the end of the scroll, not clearance.
+        { paddingBottom: Spacing.six },
       ]}>
       {/* Capped and centred so an iPad doesn't stretch a phone layout across
           1000pt of width — long measures and marooned controls are what make a

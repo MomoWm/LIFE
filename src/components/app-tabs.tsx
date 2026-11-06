@@ -1,6 +1,6 @@
 import { Tabs } from 'expo-router';
 import { useEffect } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -42,17 +42,21 @@ export default function AppTabs() {
         tabBarButton: HapticTab,
         tabBarActiveTintColor: theme.text,
         tabBarInactiveTintColor: theme.textTertiary,
-        // A real floating pill, not a painted strip across the bottom — it
-        // sits inset from every edge with its own shadow, so it reads as a
-        // tactile object resting on the page rather than chrome bolted to it.
-        tabBarBackground: () => (
-          <View style={[StyleSheet.absoluteFill, styles.pill, { backgroundColor: theme.backgroundElement }]} />
-        ),
         tabBarShowLabel: false,
+        // A pill-shaped bar, but a normal flex sibling of the scene — not
+        // `position: 'absolute'`. An absolutely-positioned bar needs the
+        // scene's bottom padding to guess its exact footprint, and that
+        // guess is exactly the kind of thing that only breaks on a real
+        // phone: mobile Safari's dynamic toolbar changes what `100vh`
+        // actually resolves to, so a desktop-browser test can look perfect
+        // while a real device shows the bar sitting over the last rows of
+        // content. Keeping it in normal layout costs nothing (it still
+        // reads as "floating" from the margin + shadow + rounded corners)
+        // and removes the whole class of bug.
         tabBarStyle: [
           styles.bar,
           Shadow.raised,
-          { bottom: insets.bottom + Spacing.two, backgroundColor: 'transparent', borderTopWidth: 0 },
+          { backgroundColor: theme.backgroundElement, marginBottom: insets.bottom + Spacing.two },
         ],
         tabBarItemStyle: styles.item,
         tabBarLabelStyle: { fontFamily: Family.medium, letterSpacing: 0.1 },
@@ -100,16 +104,12 @@ export default function AppTabs() {
 
 const styles = StyleSheet.create({
   bar: {
-    position: 'absolute',
-    left: Spacing.four,
-    right: Spacing.four,
+    marginHorizontal: Spacing.four,
     height: 64,
     borderRadius: CornerRadius.pill,
+    borderTopWidth: 0,
     paddingTop: 0,
     elevation: 8,
-  },
-  pill: {
-    borderRadius: CornerRadius.pill,
   },
   item: {
     paddingTop: 0,
