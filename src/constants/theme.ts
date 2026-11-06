@@ -205,7 +205,6 @@ export const Motion = {
   fill: 650,
 } as const;
 
-export const BottomTabInset = Platform.select({ ios: 50, android: 80 }) ?? 0;
 /**
  * The widest the content column is ever allowed to get — a single-column
  * reading width so the page looks composed and deliberately narrow on a
